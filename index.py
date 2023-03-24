@@ -97,7 +97,7 @@ def upload():
             return jsonify({"message": "need further data"})
     return jsonify({"message":"khong co mat"})
 
-@app.route('/unlockDoor', methods=['POST'])
+@app.route('/unlockDoor', methods=['GET'])
 def unlockDoor():
     urlUnlock ='http://192.168.1.7/unlock'
     data = {'data': 'open'}
@@ -107,10 +107,10 @@ def unlockDoor():
 
 @app.route('/getStatusDoor',methods=['GET'])
 def getStatusDoor():
-    url = 'http://192.168.43.133/getStatusLock'
+    url = 'http://192.168.1.7/getStatusLock'
     response = requests.post(url)
     print(response.text)
     return jsonify({'message': response.text})
 
 if __name__ == "__main__":
-    app.run(debug=True, host="192.168.43.98", port=os.environ.get("PORT", 3000))
+    app.run(debug=True, host="192.168.1.3", port=os.environ.get("PORT", 3000))
