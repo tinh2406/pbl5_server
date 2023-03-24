@@ -4,7 +4,6 @@ import base64
 import cv2
 import io
 import numpy as np
-import requests
 from PIL import Image
 from sqlite import insert,getNameFaceWithPhone,getNamePhonewithId,deleteFaceWithId
 from trainData import train
@@ -96,21 +95,6 @@ def upload():
         else:
             return jsonify({"message": "need further data"})
     return jsonify({"message":"khong co mat"})
-
-@app.route('/unlockDoor', methods=['POST'])
-def unlockDoor():
-    urlUnlock ='http://192.168.1.7/unlock'
-    data = {'data': 'open'}
-    response = requests.post(urlUnlock, data=data)
-    print(response.status_code)
-    return response.status_code
-
-@app.route('/getStatusDoor',methods=['GET'])
-def getStatusDoor():
-    url = 'http://192.168.43.133/getStatusLock'
-    response = requests.post(url)
-    print(response.text)
-    return response
 
 if __name__ == "__main__":
     app.run(debug=True, host="192.168.43.98", port=os.environ.get("PORT", 3000))
