@@ -18,7 +18,6 @@ def addUserOwner(phone,name,password,addressDoor,addressBluetooth):
    'name': name,
    'password': password,
    'addressDoor': addressDoor,
-   'addressBluetooth':addressBluetooth,
    'owner':True
 })
 
@@ -37,7 +36,6 @@ def addUser(phone,name,phoneOwner):
       return "no have owner"
    
    addressDoor = doc["addressDoor"]
-   addressBluetooth = doc["addressBluetooth"]
 
    password = random.randint(10000,99999)
 
@@ -46,7 +44,6 @@ def addUser(phone,name,phoneOwner):
    'name': name,
    'password': password,
    'addressDoor': addressDoor,
-   'addressBluetooth':addressBluetooth,
    'owner':False})
    return password
 
@@ -67,7 +64,6 @@ def addUserExists(phone,name,phoneOwner,verification):
       return "no have owner"
    
    addressDoor = doc["addressDoor"]
-   addressBluetooth = doc["addressBluetooth"]
 
    password = random.randint(10000,99999)
    db.collection('verifys').document(phone).delete()
@@ -76,7 +72,6 @@ def addUserExists(phone,name,phoneOwner,verification):
    'name': name,
    'password': password,
    'addressDoor': addressDoor,
-   'addressBluetooth':addressBluetooth,
    'owner':False})
    return password
 
@@ -101,3 +96,10 @@ def updatePassword(phone,password,newPassword):
    users_ref.set(doc)
    return True
 
+
+
+def addNotify(device,message):
+   devices_ref = db.collection('devices').document(device)
+   time = datetime.datetime.now() + datetime.timedelta(hours=-7)
+   db.collection('notifys').document().set({'device':devices_ref,"message":message,'createAt':time})
+   return True
