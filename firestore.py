@@ -42,7 +42,7 @@ def addUser(phone,name,phoneOwner):
    doc_ref = db.collection('users').document(phone)
    doc_ref.set({
    'name': name,
-   'password': password,
+   'password': str(password),
    'addressDoor': addressDoor,
    'owner':False})
    return password
@@ -70,7 +70,7 @@ def addUserExists(phone,name,phoneOwner,verification):
    doc_ref = db.collection('users').document(phone)
    doc_ref.set({
    'name': name,
-   'password': password,
+   'password': str(password),
    'addressDoor': addressDoor,
    'owner':False})
    return password
