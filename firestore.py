@@ -1,6 +1,7 @@
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
+from firebase_admin import messaging
 import random
 import json
 import datetime
@@ -10,6 +11,9 @@ cred = credentials.Certificate('./serviceAccount.json')
 app = firebase_admin.initialize_app(cred)
 
 db = firestore.client()
+
+
+
 
 
 def addUserOwner(phone,name,password,addressDoor,addressBluetooth):
@@ -102,4 +106,30 @@ def addNotify(device,message):
    devices_ref = db.collection('devices').document(device)
    time = datetime.datetime.now() + datetime.timedelta(hours=-7)
    db.collection('notifys').document().set({'device':devices_ref,"message":message,'createAt':time})
+
+   docs = db.collection("users").where('addressDoor','array_contains',devices_ref).stream()
+   
+   devices = []
+
+   for i in docs:
+      tokens = db.collection('tokens').document(i.id).get().to_dict()["devices"]
+      devices.extend(tokens)
+
+
+   notification = messaging.Notification(
+      title='Thông báo',
+      body=message)
+   
+
+# Gửi thông báo với Notification này
+   message = messaging.MulticastMessage(
+      notification=notification,
+      # data={
+      #    'title':'Title of Notification',
+      #    'body':'Body of Notification'
+      # },
+      tokens=devices
+   )
+
+   response = messaging.send_multicast(message)
    return True
