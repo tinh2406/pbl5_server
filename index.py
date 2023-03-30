@@ -87,8 +87,11 @@ def upload():
     image = data["image"]
     
     npImage = np.array(Image.open(io.BytesIO(base64.b64decode(image))),'uint8')
-
-    if getFace(cv2.flip(cv2.rotate(npImage, cv2.ROTATE_90_COUNTERCLOCKWISE),1),phone,name,count):
+    
+    resGetFace = getFace(cv2.flip(cv2.rotate(npImage, cv2.ROTATE_90_COUNTERCLOCKWISE),1),phone,name,count)
+    if resGetFace=="Gan chut nua":
+        return jsonify({"message":"Gan chut nua"})
+    if resGetFace==True:
         if count >= 5:
             insert(name,phone)
             train()
