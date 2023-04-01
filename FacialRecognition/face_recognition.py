@@ -5,6 +5,9 @@ import urllib.request
 import requests
 import time
 import datetime
+import sys
+sys.path.append('../')
+from firestore import addImageToStorage
 # from tensorflow.keras.models import model_from_json
 # from tensorflow.keras.applications import EfficientNetB0
 # from tensorflow.keras.applications.efficientnet import preprocess_input
@@ -30,6 +33,7 @@ imgScale = 0.25
 urlImg='http://192.168.1.7/cam-hi.jpg'
 urlUnlock ='http://192.168.1.7/unlock'
 im=None
+unknown_count = 0
 # cv2.namedWindow("live transmission", cv2.WINDOW_AUTOSIZE)
 
 pre_time = cv2.getTickCount()
@@ -45,16 +49,16 @@ count = 0
 
 while True:
     # esp32
-    img_resp=urllib.request.urlopen(urlImg)
-    imgnp=np.array(bytearray(img_resp.read()),dtype=np.uint8)
-    img = cv2.imdecode(imgnp,-1)
-    img = cv2.flip(img,1)
+    # img_resp=urllib.request.urlopen(urlImg)
+    # imgnp=np.array(bytearray(img_resp.read()),dtype=np.uint8)
+    # img = cv2.imdecode(imgnp,-1)
+    # img = cv2.flip(img,1)
     
  
     # cv2.imshow('live transmission',img)
     #  =================================================================
-    # ret, img =cam.read()
-    # img = cv2.flip(img, 1) # Flip vertically
+    ret, img =cam.read()
+    img = cv2.flip(img, 1) # Flip vertically
     
  
     gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
@@ -77,29 +81,42 @@ while True:
         cv2.rectangle(img, (x,y), (x+w,y+h), (0,255,0), 2)
         id, confidence = recognizer.predict(gray[y:y+h,x:x+w])
         # Check if confidence is less them 100 ==> "0" is perfect match 
-        if (confidence < 75):
+        if (confidence < 60):
             id = names[id]
             confidence = " {0}%".format(round(100 - confidence))
             print(id)
             print(confidence)
-            pre_time = cv2.getTickCount()
+            # pre_time = cv2.getTickCount()
             # pre_time = datetime.datetime.now()
-            data = {'data': 'open'}
-            requests.post(urlUnlock, data=data)
+            # data = {'data': 'open'}
+            # requests.post(urlUnlock, data=data)
             # print(response.status_code)
             count = 0
             now = datetime.datetime.now()
-            imgTimeUnknown = now.strftime("%d-%m-%y_%Hh%Mm%Ss")
-            imgPathUnknown = "./imagesSaved/" + imgTimeUnknown +"_"+ id + ".jpg"               
+            imgTime = now.strftime("%d-%m-%y_%Hh%Mm%Ss")
+            imgPathRecognize = "./imagesSaved/" + imgTime +"_"+ id + ".jpg"               
             check = True
-            # print('den day roi')
+            unknown_count = 0
         else:
             id = "unknown"
             confidence = "  {0}%".format(round(100 - confidence))
+            unknown_count += 1
+            # if unknown_count >= 200:
+            #     print("Đây là giả mạo")
+            #     unknown_count = 0
         cv2.putText(img, str(id), (x+5,y-5), font, 1, (255,255,255), 2)
-        # cv2.putText(img, str(confidence), (x+5,y+h-5), font, 1, (255,255,0), 1)
+        cv2.putText(img, str(confidence), (x+5,y+h-5), font, 1, (255,255,0), 1)
         if check == True:
-            cv2.imwrite(imgPathUnknown, img)
+            cv2.imwrite(imgPathRecognize, img)
+    if unknown_count > 500:
+        print('day la nguoi la')
+        now = datetime.datetime.now()
+        imgTimeUnknown = now.strftime("%d-%m-%y_%Hh%Mm%Ss")
+        imgPathUnknown = "./unknownImage/" + imgTimeUnknown +"_"+ id + ".jpg" 
+        cv2.imwrite(imgPathUnknown,img)
+        nameUnknown = "Unknown_" + imgTimeUnknown + ".jpg"
+        addImageToStorage('notify',imgPathUnknown,nameUnknown)
+        unknown_count = 0
     cv2.imshow('camera',img)
     k = cv2.waitKey(10) & 0xff # Press 'ESC' for exiting video
     if k == 27:
