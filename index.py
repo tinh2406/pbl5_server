@@ -8,10 +8,8 @@ from PIL import Image
 from sqlite import insert,getNameFaceWithPhone,getNamePhonewithId,deleteFaceWithId
 from trainData import train
 from detectFaces import getFace
-from firestore import updatePassword,addUser,addUserExists,resetVerifyCode
+from firestore import updatePassword,addUser,addUserExists,resetVerifyCode,deviceIsInPhone,setStatusDoor,addHistory,getUserByPhone,getNameDevice
 app = Flask(__name__)
-
-
 
 
 @app.route("/")
@@ -98,6 +96,35 @@ def upload():
         else:
             return jsonify({"message": "need further data"})
     return jsonify({"message":"khong co mat"})
+
+@app.route('/unlockDoor', methods=['POST'])
+def lockDoor():
+    data = request.get_json()
+    phone = data['phone']
+    addressDoor = data['addressDoor']
+    
+    if not deviceIsInPhone(addressDoor,phone):
+        return jsonify({'message':'unauthorized'}),400
+
+    setStatusDoor(addressDoor,True)
+    addHistory(addressDoor,getNameDevice(addressDoor)+' open by '+getUserByPhone(phone)['name'])
+    print('Unlocked')
+    return jsonify({'message': "Unlocked"})
+
+@app.route('/lockDoor', methods=['POST'])
+def unlockDoor():
+    data = request.get_json()
+    phone = data['phone']
+    addressDoor = data['addressDoor']
+    
+    if not deviceIsInPhone(addressDoor,phone):
+        return jsonify({'message':'unauthorized'}),400
+    
+    setStatusDoor(addressDoor,False)
+    print('Locked')
+    # return jsonify({'status': response.status_code})
+    return jsonify({'message': "Locked"})
+
 
 if __name__ == "__main__":
     app.run(debug=True, host="192.168.43.98", port=os.environ.get("PORT", 3000))
