@@ -108,8 +108,7 @@ def addHistory(device,message):
 def addNotify(device,message):
    devices_ref = db.collection('devices').document(device)
    time = datetime.datetime.now() + datetime.timedelta(hours=-7)
-   db.collection('notifys').document().set({'device':devices_ref,"message":message,'createAt':time})
-
+   res = db.collection('notifys').add({'device':devices_ref,"message":message,'createAt':time})
    docs = db.collection("users").where('addressDoor','array_contains',devices_ref).stream()
    
    devices = []
@@ -121,7 +120,7 @@ def addNotify(device,message):
 
    notification = messaging.Notification(
       title='Thông báo',
-      body=message)
+      body=(json.dumps({"message":message,"id":res[1].id})))
    
 
 # Gửi thông báo với Notification này
