@@ -114,22 +114,27 @@ def addNotify(device,message):
    devices = []
 
    for i in docs:
-      tokens = db.collection('tokens').document(i.id).get().to_dict()["devices"]
-      devices.extend(tokens)
+      try:
+         tokens = db.collection('tokens').document(i.id).get().to_dict()["devices"]
+         devices.extend(tokens)
+      except Exception:
+         print()
 
 
    notification = messaging.Notification(
-      title='Thông báo',
-      body=(json.dumps({"message":message,"id":res[1].id})))
+      title='Thông báo', 
+      # body=(json.dumps({"message":message,"id":res[1].id}))),
+      body=message,
+      )
+      
    
 
 # Gửi thông báo với Notification này
    message = messaging.MulticastMessage(
       notification=notification,
-      # data={
-      #    'title':'Title of Notification',
-      #    'body':'Body of Notification'
-      # },
+      data={
+         "id":res[1].id
+      },
       tokens=devices
    )
 

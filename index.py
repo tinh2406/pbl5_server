@@ -127,4 +127,4 @@ def unlockDoor():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="192.168.43.98", port=os.environ.get("PORT", 3000))
+    app.run(debug=True, host="192.168.1.5", port=os.environ.get("PORT", 3000))
