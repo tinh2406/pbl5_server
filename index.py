@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify,send_file,send_from_directory
 import os
 import base64
 import cv2
@@ -12,8 +12,9 @@ from detectFaces import getFace
 from firestore import updatePassword,addUser,addUserExists,resetVerifyCode
 app = Flask(__name__)
 
-
-
+cam = cv2.VideoCapture(0)
+cam.set(3, 640) # set video widht
+cam.set(4, 480)
 
 @app.route("/")
 def home():
@@ -114,6 +115,30 @@ def getStatusDoor():
     response = requests.post(url)
     print(response.text)
     return jsonify({'message': response.text})
+
+@app.route('/get_image',methods=['GET'])
+def get_image():
+    cam = cv2.VideoCapture(0)
+    cam.set(3, 640) # set video widht
+    cam.set(4, 480)
+    ret, img =cam.read()
+    img = cv2.flip(img, 1)
+    # cv2.imwrite('./temp.jpg', img)
+    # return send_file('./temp.jpg',mimetype='image/jpeg')
+    # Lấy đường dẫn thư mục hiện tại của server
+    cur_dir = os.getcwd()
+    
+    # Lưu ảnh vào một file tạm trong thư mục gốc của ứng dụng Flask
+    cv2.imwrite(os.path.join(cur_dir, 'temp.jpg'), img)
+    
+    cam.release()
+    # Trả về file tạm đó cho client
+    return send_file(os.path.join(cur_dir, 'temp.jpg'), mimetype='image/jpeg')
+    
+@app.route('/callapi',methods = ['GET'])
+def callapi():
+    print('done call api')
+    return 'return ket quadjk jkkjsd'
 
 if __name__ == "__main__":
     app.run(debug=True, host="192.168.1.3", port=os.environ.get("PORT", 3000))

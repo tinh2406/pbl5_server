@@ -2,17 +2,21 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 from firebase_admin import messaging
+from firebase_admin import storage
+from google.cloud import storage as gc_storage
 import random
 import json
 import datetime
 # Use a service account.
 cred = credentials.Certificate('./serviceAccount.json')
 
-app = firebase_admin.initialize_app(cred)
+app = firebase_admin.initialize_app(cred, {
+    'storageBucket': 'pbl5-40150.appspot.com'
+})
 
 db = firestore.client()
 
-
+bucket = storage.bucket()
 
 
 
@@ -105,8 +109,7 @@ def updatePassword(phone,password,newPassword):
 def addNotify(device,message):
    devices_ref = db.collection('devices').document(device)
    time = datetime.datetime.now() + datetime.timedelta(hours=-7)
-   db.collection('notifys').document().set({'device':devices_ref,"message":message,'createAt':time})
-
+   res = db.collection('notifys').add({'device':devices_ref,"message":message,'createAt':time})
    docs = db.collection("users").where('addressDoor','array_contains',devices_ref).stream()
    
    devices = []
@@ -118,7 +121,7 @@ def addNotify(device,message):
 
    notification = messaging.Notification(
       title='Thông báo',
-      body=message)
+      body=(json.dumps({"message":message,"id":res[1].id})))
    
 
 # Gửi thông báo với Notification này
@@ -133,3 +136,44 @@ def addNotify(device,message):
 
    response = messaging.send_multicast(message)
    return True
+
+
+def addHistory(device,user,message = 'thong bao'):
+   devices_ref = db.collection('devices').document(device)
+   time = datetime.datetime.now() + datetime.timedelta(hours=-7)
+   db.collection('historys').document().set({'device':devices_ref,"message":message,'createAt':time,'user':user})
+
+   docs = db.collection("users").where('addressDoor','array_contains',devices_ref).stream()
+   
+   devices = []
+
+   for i in docs:
+      tokens = db.collection('tokens').document(i.id).get().to_dict()["devices"]
+      devices.extend(tokens)
+
+   notification = messaging.Notification(
+      title='Thông báo',
+      body=message
+      )
+   
+   message = messaging.MulticastMessage(
+      notification=notification,
+      tokens=devices
+   )
+
+   response = messaging.send_multicast(message)
+   return True
+
+def testing ():
+   print('this is test')
+
+def addImageToStorage(folderInStorage,path,name):
+    folder_path = f'{folderInStorage}/'
+    file_name_path = f'{folder_path}{name}'
+    blob = bucket.blob(file_name_path)
+    blob.upload_from_filename(path)
+    print(f'Image has been uploaded to {blob.public_url}')
+    return blob.public_url
+
+# image_url = addImageToStorage('notify','./FacialRecognition/imagesSaved/31-03-23_12h26m14s_Duy Nguyen.jpg', 'image_1')
+print(addHistory('192.168.1.113','duy duc nguyen'))
