@@ -16,12 +16,12 @@ db = firestore.client()
 
 
 
-def addUserOwner(phone,name,password,addressDoor,addressBluetooth):
+def addUserOwner(phone,name,password,devices,addressBluetooth):
    doc_ref = db.collection('users').document(phone)
    doc_ref.set({
    'name': name,
    'password': password,
-   'addressDoor': addressDoor,
+   'devices': devices,
    'owner':True
 })
 
@@ -39,7 +39,7 @@ def addUser(phone,name,phoneOwner):
    if doc == None:
       return "no have owner"
    
-   addressDoor = doc["addressDoor"]
+   devices = doc["devices"]
 
    password = random.randint(10000,99999)
 
@@ -47,7 +47,7 @@ def addUser(phone,name,phoneOwner):
    doc_ref.set({
    'name': name,
    'password': str(password),
-   'addressDoor': addressDoor,
+   'devices': devices,
    'owner':False})
    return password
 
@@ -67,7 +67,7 @@ def addUserExists(phone,name,phoneOwner,verification):
    if doc == None:
       return "no have owner"
    
-   addressDoor = doc["addressDoor"]
+   devices = doc["devices"]
 
    password = random.randint(10000,99999)
    db.collection('verifys').document(phone).delete()
@@ -75,8 +75,8 @@ def addUserExists(phone,name,phoneOwner,verification):
    doc_ref.set({
    'name': name,
    'password': str(password),
-   'addressDoor': addressDoor,
-   'owner':False})
+   'devices': devices,
+   'owner':phone})
    return password
 
 def resetVerifyCode(phone):
@@ -109,8 +109,7 @@ def addNotify(device,message):
    devices_ref = db.collection('devices').document(device)
    time = datetime.datetime.now() + datetime.timedelta(hours=-7)
    res = db.collection('notifys').add({'device':devices_ref,"message":message,'createAt':time})
-   docs = db.collection("users").where('addressDoor','array_contains',devices_ref).stream()
-   
+   docs = db.collection("deviceUser").where('devices','array_contains',devices_ref).get()
    devices = []
 
    for i in docs:
@@ -119,7 +118,6 @@ def addNotify(device,message):
          devices.extend(tokens)
       except Exception:
          print()
-
 
    notification = messaging.Notification(
       title='Thông báo', 
@@ -143,11 +141,13 @@ def addNotify(device,message):
 
 
 def deviceIsInPhone(device,phone):
-   devices_ref = db.collection('devices').document(device)
-   docs = db.collection("users").where('addressDoor','array_contains',devices_ref).get()
+   user = db.collection('users').document(phone).get().to_dict()
+   if not user:
+      return False
+   docs = user['devices'].get().to_dict()['devices']
 
    for i in docs:
-      if i.id==phone:
+      if i.get().id==device:
          return True
    return False
 

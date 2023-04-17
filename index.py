@@ -71,7 +71,7 @@ def deleteFaceAPI(id):
     train()
     return jsonify({"message":"face deleted successfully"}),200
 
-@app.route("/faces/<phone>")
+@app.route("/face/<phone>",methods=["GET"])
 def getFacesAPI(phone):
     return jsonify({"data":getNameFaceWithPhone(phone)})
 
@@ -100,6 +100,7 @@ def upload():
 @app.route('/unlockDoor', methods=['POST'])
 def lockDoor():
     data = request.get_json()
+    print(data)
     phone = data['phone']
     addressDoor = data['addressDoor']
     
@@ -127,4 +128,4 @@ def unlockDoor():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="192.168.1.5", port=os.environ.get("PORT", 3000))
+    app.run(debug=True, host="192.168.43.98", port=os.environ.get("PORT", 3000))
