@@ -48,7 +48,7 @@ def addUser(phone,name,phoneOwner):
    'name': name,
    'password': str(password),
    'devices': devices,
-   'owner':False})
+   'owner':phone})
    return password
 
 
@@ -109,7 +109,10 @@ def addNotify(device,message):
    devices_ref = db.collection('devices').document(device)
    time = datetime.datetime.now() + datetime.timedelta(hours=-7)
    res = db.collection('notifys').add({'device':devices_ref,"message":message,'createAt':time})
-   docs = db.collection("deviceUser").where('devices','array_contains',devices_ref).get()
+   phone = db.collection("deviceUser").where('devices','array_contains',devices_ref).get()[0].id
+   deviceUserref = db.collection("deviceUser").document(phone)
+   docs = db.collection("users").where('devices','==',deviceUserref).get()#[0].to_dict()['devices']
+   
    devices = []
 
    for i in docs:
@@ -118,6 +121,8 @@ def addNotify(device,message):
          devices.extend(tokens)
       except Exception:
          print()
+
+
 
    notification = messaging.Notification(
       title='Thông báo', 
