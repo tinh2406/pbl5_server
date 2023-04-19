@@ -40,7 +40,10 @@ def addUser(phone,name,phoneOwner):
       return "no have owner"
    
    devices = doc["devices"]
-
+   if owner == True:
+      owner = phoneOwner
+   else:
+      owner = doc['owner']
    password = random.randint(10000,99999)
 
    doc_ref = db.collection('users').document(phone)
@@ -48,7 +51,7 @@ def addUser(phone,name,phoneOwner):
    'name': name,
    'password': str(password),
    'devices': devices,
-   'owner':phone})
+   'owner':owner})
    return password
 
 
@@ -68,7 +71,10 @@ def addUserExists(phone,name,phoneOwner,verification):
       return "no have owner"
    
    devices = doc["devices"]
-
+   if owner == True:
+      owner = phoneOwner
+   else:
+      owner = doc['owner']
    password = random.randint(10000,99999)
    db.collection('verifys').document(phone).delete()
    doc_ref = db.collection('users').document(phone)
@@ -76,7 +82,7 @@ def addUserExists(phone,name,phoneOwner,verification):
    'name': name,
    'password': str(password),
    'devices': devices,
-   'owner':phone})
+   'owner':owner})
    return password
 
 def resetVerifyCode(phone):
