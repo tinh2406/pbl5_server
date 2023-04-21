@@ -8,7 +8,7 @@ from PIL import Image
 from sqlite import insert, getNameFaceWithPhone, getNamePhonewithId, deleteFaceWithId
 from trainData import train
 from detectFaces import getFace
-from firestore import updatePassword, addUser, addUserExists, resetVerifyCode, deviceIsInPhone, setStatusDoor, addHistory, getUserByPhone, getNameDevice
+from firestore import deleteUser, getUserList, updatePassword, addUser, addUserExists, resetVerifyCode, deviceIsInPhone, setStatusDoor, addHistory, getUserByPhone, getNameDevice
 app = Flask(__name__)
 
 
@@ -25,13 +25,27 @@ def updatePasswordAPI():
     return jsonify({"message": "Password unchanged"}), 403
 
 
+@app.route("/users/userList", methods=["GET"])
+def getUserListAPI():
+    res = getUserList()
+    return jsonify(res)
+
+
 @app.route("/users/addUser", methods=["POST"])
 def addUserAPI():
     data = request.get_json()
-    res = addUser(data["phone"], data["name"], data["phoneOwner"])
+    res = addUser(data["phone"], data["name"],
+                  data["phoneOwner"])
     if res == "exists account" or res == "no have owner":
         return jsonify({"message": res})
     return jsonify({"message": "Add account successfully"})
+
+
+@app.route("/users/deleteUser", methods=["POST"])
+def deleteUserAPI():
+    data = request.get_json()
+    res = deleteUser(data["phone"])
+    return jsonify({"message": res})
 
 
 @app.route("/users/addUserExists", methods=["POST"])
@@ -142,5 +156,5 @@ def unlockDoor():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="192.168.10.147",
+    app.run(debug=True, host="192.168.10.49",
             port=os.environ.get("PORT", 3000))
