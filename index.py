@@ -1,16 +1,22 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify,send_file,send_from_directory
 import os
 import base64
 import cv2
 import io
 import numpy as np
+import requests
 from PIL import Image
+import time
 from sqlite import insert,getNameFaceWithPhone,getNamePhonewithId,deleteFaceWithId
 from trainData import train
 from detectFaces import getFace
+from face_recognition import recognize_faces
 from firestore import updatePassword,addUser,addUserExists,resetVerifyCode,deviceIsInPhone,setStatusDoor,addHistory,getUserByPhone,getNameDevice
 app = Flask(__name__)
 
+cam = cv2.VideoCapture(0)
+cam.set(3, 640) # set video widht
+cam.set(4, 480)
 
 @app.route("/")
 def home():
@@ -71,7 +77,7 @@ def deleteFaceAPI(id):
     train()
     return jsonify({"message":"face deleted successfully"}),200
 
-@app.route("/face/<phone>",methods=["GET"])
+@app.route("/faces/<phone>")
 def getFacesAPI(phone):
     return jsonify({"data":getNameFaceWithPhone(phone)})
 
@@ -100,7 +106,6 @@ def upload():
 @app.route('/unlockDoor', methods=['POST'])
 def lockDoor():
     data = request.get_json()
-    print(data)
     phone = data['phone']
     addressDoor = data['addressDoor']
     
@@ -127,5 +132,55 @@ def unlockDoor():
     return jsonify({'message': "Locked"})
 
 
+@app.route('/get_image',methods=['GET'])
+def get_image():
+    cam = cv2.VideoCapture(0)
+    cam.set(3, 640) # set video widht
+    cam.set(4, 480)
+    ret, img =cam.read()
+    img = cv2.flip(img, 1)
+    # cv2.imwrite('./temp.jpg', img)
+    # return send_file('./temp.jpg',mimetype='image/jpeg')
+    # Lấy đường dẫn thư mục hiện tại của server
+    cur_dir = os.getcwd()
+    
+    # Lưu ảnh vào một file tạm trong thư mục gốc của ứng dụng Flask
+    cv2.imwrite(os.path.join(cur_dir, 'temp.jpg'), img)
+    
+    cam.release()
+    # Trả về file tạm đó cho client
+    return send_file(os.path.join(cur_dir, 'temp.jpg'), mimetype='image/jpeg')
+    
+@app.route('/callapi',methods = ['GET'])
+def callapi():
+    print('done call api')
+    return 'return ket quadjk jkkjsd'
+
+@app.route('/recognize_face',methods = ['POST'])
+def handle_recognize_face():
+    print('co yeu cau')
+    ipAddressESP = request.get_data(as_text=True)
+    print('Received data:', ipAddressESP)
+    # urlUnlock ='http://192.168.1.7/unlock'
+    # data = {'data': 'open'}
+    # time.sleep(10)
+    # response = requests.post(urlUnlock, data=data)
+    check = recognize_faces(ipAddressESP)
+    return 'True'
+
+@app.route('/getWifi',methods=['GET'])
+def getWifi():
+    url = 'http://192.168.1.7/getWifiAddress'
+    response = requests.post(url)
+    print(response.text)
+    return jsonify({'message': response.text})
+
+@app.route('/getBluetooth',methods=['GET'])
+def getBluetooth():
+    url = 'http://192.168.1.7/getBluetoothAddress'
+    response = requests.post(url)
+    print(response.text)
+    return jsonify({'message': response.text})
+
 if __name__ == "__main__":
-    app.run(debug=True, host="192.168.137.1", port=os.environ.get("PORT", 3000))
+    app.run(debug=True, host="192.168.115.108", port=os.environ.get("PORT", 3000))

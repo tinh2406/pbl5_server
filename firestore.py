@@ -2,26 +2,31 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 from firebase_admin import messaging
+from firebase_admin import storage
+from google.cloud import storage as gc_storage
 import random
 import json
 import datetime
 # Use a service account.
+# cred = credentials.Certificate('./serviceAccount.json')
 cred = credentials.Certificate('./serviceAccount.json')
 
-app = firebase_admin.initialize_app(cred)
+app = firebase_admin.initialize_app(cred, {
+    'storageBucket': 'pbl5-40150.appspot.com'
+})
 
 db = firestore.client()
 
+bucket = storage.bucket()
 
 
 
-
-def addUserOwner(phone,name,password,devices,addressBluetooth):
+def addUserOwner(phone,name,password,addressDoor,addressBluetooth):
    doc_ref = db.collection('users').document(phone)
    doc_ref.set({
    'name': name,
    'password': password,
-   'devices': devices,
+   'addressDoor': addressDoor,
    'owner':True
 })
 
@@ -39,19 +44,16 @@ def addUser(phone,name,phoneOwner):
    if doc == None:
       return "no have owner"
    
-   devices = doc["devices"]
-   if owner == True:
-      owner = phoneOwner
-   else:
-      owner = doc['owner']
+   addressDoor = doc["addressDoor"]
+
    password = random.randint(10000,99999)
 
    doc_ref = db.collection('users').document(phone)
    doc_ref.set({
    'name': name,
    'password': str(password),
-   'devices': devices,
-   'owner':owner})
+   'addressDoor': addressDoor,
+   'owner':False})
    return password
 
 
@@ -70,19 +72,16 @@ def addUserExists(phone,name,phoneOwner,verification):
    if doc == None:
       return "no have owner"
    
-   devices = doc["devices"]
-   if owner == True:
-      owner = phoneOwner
-   else:
-      owner = doc['owner']
+   addressDoor = doc["addressDoor"]
+
    password = random.randint(10000,99999)
    db.collection('verifys').document(phone).delete()
    doc_ref = db.collection('users').document(phone)
    doc_ref.set({
    'name': name,
    'password': str(password),
-   'devices': devices,
-   'owner':owner})
+   'addressDoor': addressDoor,
+   'owner':False})
    return password
 
 def resetVerifyCode(phone):
@@ -115,9 +114,7 @@ def addNotify(device,message):
    devices_ref = db.collection('devices').document(device)
    time = datetime.datetime.now() + datetime.timedelta(hours=-7)
    res = db.collection('notifys').add({'device':devices_ref,"message":message,'createAt':time})
-   phone = db.collection("deviceUser").where('devices','array_contains',devices_ref).get()[0].id
-   deviceUserref = db.collection("deviceUser").document(phone)
-   docs = db.collection("users").where('devices','==',deviceUserref).get()#[0].to_dict()['devices']
+   docs = db.collection("users").where('addressDoor','array_contains',devices_ref).stream()
    
    devices = []
 
@@ -127,7 +124,6 @@ def addNotify(device,message):
          devices.extend(tokens)
       except Exception:
          print()
-
 
 
    notification = messaging.Notification(
@@ -151,14 +147,51 @@ def addNotify(device,message):
    return True
 
 
-def deviceIsInPhone(device,phone):
-   user = db.collection('users').document(phone).get().to_dict()
-   if not user:
-      return False
-   docs = user['devices'].get().to_dict()['devices']
+def addHistory(device,user,message = 'thong bao'):
+   devices_ref = db.collection('devices').document(device)
+   time = datetime.datetime.now() + datetime.timedelta(hours=-7)
+   db.collection('historys').document().set({'device':devices_ref,"message":message,'createAt':time,'user':user})
+
+   docs = db.collection("users").where('addressDoor','array_contains',devices_ref).stream()
+   
+   devices = []
 
    for i in docs:
-      if i.get().id==device:
+      tokens = db.collection('tokens').document(i.id).get().to_dict()["devices"]
+      devices.extend(tokens)
+
+   notification = messaging.Notification(
+      title='Thông báo',
+      body=message
+      )
+   
+   message = messaging.MulticastMessage(
+      notification=notification,
+      tokens=devices
+   )
+
+   response = messaging.send_multicast(message)
+   return True
+
+def testing ():
+   print('this is test')
+
+def addImageToStorage(folderInStorage,path,name):
+    folder_path = f'{folderInStorage}/'
+    file_name_path = f'{folder_path}{name}'
+    blob = bucket.blob(file_name_path)
+    blob.upload_from_filename(path)
+    print(f'Image has been uploaded to {blob.public_url}')
+    return blob.public_url
+
+# image_url = addImageToStorage('notify','./FacialRecognition/imagesSaved/31-03-23_12h26m14s_Duy Nguyen.jpg', 'image_1')
+# print(addHistory('192.168.1.113','duy duc nguyen'))
+def deviceIsInPhone(device,phone):
+   devices_ref = db.collection('devices').document(device)
+   docs = db.collection("users").where('addressDoor','array_contains',devices_ref).get()
+
+   for i in docs:
+      if i.id==phone:
          return True
    return False
 
