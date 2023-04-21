@@ -8,6 +8,7 @@ import random
 import json
 import datetime
 # Use a service account.
+# cred = credentials.Certificate('./serviceAccount.json')
 cred = credentials.Certificate('./serviceAccount.json')
 
 app = firebase_admin.initialize_app(cred, {
@@ -104,7 +105,10 @@ def updatePassword(phone,password,newPassword):
    users_ref.set(doc)
    return True
 
-
+def addHistory(device,message):
+   devices_ref = db.collection('devices').document(device)
+   time = datetime.datetime.now() + datetime.timedelta(hours=-7)
+   db.collection('historys').document().set({'device':devices_ref,"message":message,'createAt':time})
 
 def addNotify(device,message):
    devices_ref = db.collection('devices').document(device)
@@ -115,22 +119,27 @@ def addNotify(device,message):
    devices = []
 
    for i in docs:
-      tokens = db.collection('tokens').document(i.id).get().to_dict()["devices"]
-      devices.extend(tokens)
+      try:
+         tokens = db.collection('tokens').document(i.id).get().to_dict()["devices"]
+         devices.extend(tokens)
+      except Exception:
+         print()
 
 
    notification = messaging.Notification(
-      title='Thông báo',
-      body=(json.dumps({"message":message,"id":res[1].id})))
+      title='Thông báo', 
+      # body=(json.dumps({"message":message,"id":res[1].id}))),
+      body=message,
+      )
+      
    
 
 # Gửi thông báo với Notification này
    message = messaging.MulticastMessage(
       notification=notification,
-      # data={
-      #    'title':'Title of Notification',
-      #    'body':'Body of Notification'
-      # },
+      data={
+         "id":res[1].id
+      },
       tokens=devices
    )
 
@@ -176,4 +185,29 @@ def addImageToStorage(folderInStorage,path,name):
     return blob.public_url
 
 # image_url = addImageToStorage('notify','./FacialRecognition/imagesSaved/31-03-23_12h26m14s_Duy Nguyen.jpg', 'image_1')
-print(addHistory('192.168.1.113','duy duc nguyen'))
+# print(addHistory('192.168.1.113','duy duc nguyen'))
+def deviceIsInPhone(device,phone):
+   devices_ref = db.collection('devices').document(device)
+   docs = db.collection("users").where('addressDoor','array_contains',devices_ref).get()
+
+   for i in docs:
+      if i.id==phone:
+         return True
+   return False
+
+def setStatusDoor(device,status):
+   device_ref = db.collection('devices').document(device)
+   device_ref.set({'status':status},merge=True)
+
+
+def getUserByPhone(phone):
+   user_ref = db.collection('users').document(phone)
+   doc = user_ref.get()
+   return doc.to_dict()
+def getNameDevice(device):
+   device_res = db.collection('devices').document(device)
+   doc = device_res.get().to_dict()
+   if doc['name']=="":
+      return device
+   return doc['name']
+   

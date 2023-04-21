@@ -3,6 +3,7 @@ import os
 from PIL import Image
 from sqlite import getIdWithNameAndPhone
 import cv2
+# detector = cv2.CascadeClassifier("./FacialRecognition/haarcascade_frontalface_default.xml");
 def train():
     recognizer = cv2.face.LBPHFaceRecognizer_create()
     path='dataSet'
@@ -22,7 +23,8 @@ def train():
             faceNp=np.array(faceImg,'uint8')
             phone=imagePath.split('\\')[1].split('\\')[0]
             name=imagePath.split('\\')[2].split('\\')[0]
-
+        
+            # tinh 
             faces.append(faceNp)
             ids.append(getIdWithNameAndPhone(name,phone))
             
@@ -36,5 +38,7 @@ def train():
     if not os.path.exists('recognizer'):
         os.makedirs('recognizer')
     recognizer.save('recognizer/trainningData.xml')
+
+train()
 
 
