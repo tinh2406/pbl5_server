@@ -8,7 +8,7 @@ from PIL import Image
 from sqlite import insert,getNameFaceWithPhone,getNamePhonewithId,deleteFaceWithId
 from trainData import train
 from detectFaces import getFace
-from firestore import updatePassword,addUser,addUserExists,resetVerifyCode,deviceIsInPhone,setStatusDoor,addHistory,getUserByPhone,getNameDevice
+from firestore import updatePassword,addUser,addUserExists,resetVerifyCode,deviceIsInPhone,setStatusDoor,addHistory,getUserByPhone,getNameDevice,deleteUser
 app = Flask(__name__)
 
 
@@ -114,6 +114,7 @@ def lockDoor():
 
 @app.route('/lockDoor', methods=['POST'])
 def unlockDoor():
+    
     data = request.get_json()
     phone = data['phone']
     addressDoor = data['addressDoor']
@@ -127,5 +128,13 @@ def unlockDoor():
     return jsonify({'message': "Locked"})
 
 
+@app.route("/users/deleteUser", methods=["POST"])
+def deleteUserAPI():
+    data = request.get_json()
+    res = deleteUser(data["phone"])
+    return jsonify({"message": res})
+
+
+
 if __name__ == "__main__":
-    app.run(debug=True, host="192.168.137.1", port=os.environ.get("PORT", 3000))
+    app.run(debug=True, host="192.168.43.98", port=os.environ.get("PORT", 3000))

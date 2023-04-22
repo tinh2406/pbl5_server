@@ -22,68 +22,80 @@ def addUserOwner(phone,name,password,devices,addressBluetooth):
    'name': name,
    'password': password,
    'devices': devices,
-   'owner':True
+   'owner':True,
+   'phone': phone
 })
 
-def addUser(phone,name,phoneOwner):
-   users_ref = db.collection('users').document(phone)
-   doc = users_ref.get().to_dict()
-   if doc!=None:
-      time = datetime.datetime.now() + datetime.timedelta(minutes=10,hours=-7)
-      doc_ref = db.collection('verifys').document(phone)
-      doc_ref.set({"code":random.randint(10000,99999),"expireAt":time})
-      return "exists account"
+def addUser(phone, name, phoneOwner):
+    users_ref = db.collection('users').document(phone)
+    doc = users_ref.get().to_dict()
+    if doc != None:
+        time = datetime.datetime.now() + datetime.timedelta(minutes=10, hours=-7)
+        doc_ref = db.collection('verifys').document(phone)
+        doc_ref.set({"code": random.randint(10000, 99999), "expireAt": time})
+        return "exists account"
 
-   users_ref = db.collection('users').document(phoneOwner)
-   doc = users_ref.get().to_dict()
-   if doc == None:
-      return "no have owner"
-   
-   devices = doc["devices"]
-   if owner == True:
-      owner = phoneOwner
-   else:
-      owner = doc['owner']
-   password = random.randint(10000,99999)
+    users_ref = db.collection('users').document(phoneOwner)
+    doc = users_ref.get().to_dict()
+    if doc == None:
+        return "no have owner"
 
-   doc_ref = db.collection('users').document(phone)
-   doc_ref.set({
-   'name': name,
-   'password': str(password),
-   'devices': devices,
-   'owner':owner})
-   return password
+    devices = doc["devices"]
+    if doc['owner'] == True:
+        owner = phoneOwner
+    else:
+        owner = doc['owner']
+    password = random.randint(10000, 99999)
+
+    doc_ref = db.collection('users').document(phone)
+    doc_ref.set({
+        'name': name,
+        'password': str(password),
+        'devices': devices,
+        'owner': owner,
+        'phone': phone})
+    return password
 
 
 
-def addUserExists(phone,name,phoneOwner,verification):
-   users_ref = db.collection('verifys').document(phone)
-   doc = users_ref.get().to_dict()
-   if doc==None:
-      return "error"
+def addUserExists(phone, name, phoneOwner, verification):
+    users_ref = db.collection('verifys').document(phone)
+    doc = users_ref.get().to_dict()
+    if doc == None:
+        return "error"
 
-   if str(doc["code"])!=verification or datetime.datetime.fromtimestamp(doc["expireAt"].timestamp())<datetime.datetime.now():
-      return "verification code not match"
-   
-   users_ref = db.collection('users').document(phoneOwner)
-   doc = users_ref.get().to_dict()
-   if doc == None:
-      return "no have owner"
-   
-   devices = doc["devices"]
-   if owner == True:
-      owner = phoneOwner
-   else:
-      owner = doc['owner']
-   password = random.randint(10000,99999)
-   db.collection('verifys').document(phone).delete()
-   doc_ref = db.collection('users').document(phone)
-   doc_ref.set({
-   'name': name,
-   'password': str(password),
-   'devices': devices,
-   'owner':owner})
-   return password
+    if str(doc["code"]) != verification or datetime.datetime.fromtimestamp(doc["expireAt"].timestamp()) < datetime.datetime.now():
+        return "verification code not match"
+
+    users_ref = db.collection('users').document(phoneOwner)
+    doc = users_ref.get().to_dict()
+    if doc == None:
+        return "no have owner"
+
+    devices = doc["devices"]
+    if doc['owner'] == True:
+        owner = phoneOwner
+    else:
+        owner = doc['owner']
+    password = random.randint(10000, 99999)
+    db.collection('verifys').document(phone).delete()
+    doc_ref = db.collection('users').document(phone)
+    doc_ref.set({
+        'name': name,
+        'password': str(password),
+        'devices': devices,
+        'owner': owner,
+        'phone': phone})
+    return password
+
+
+def deleteUser(phone):
+    try:
+        users_ref = db.collection('users').document(phone)
+        users_ref.delete()
+        return "Delete successfully"
+    except:
+        return "Cannot delete this user"
 
 def resetVerifyCode(phone):
    users_ref = db.collection('users').document(phone)
