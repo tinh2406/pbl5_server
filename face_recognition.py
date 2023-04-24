@@ -112,7 +112,7 @@ def recognize_faces(ipESP32):
                 now = datetime.datetime.now()
                 imgTime = now.strftime("%d-%m-%y_%Hh%Mm%Ss")
                 imgPathRecognize = "./imagesSaved/" + imgTime +"_"+ name + ".jpg" 
-                addHistory(ipESP32,name)
+                addHistory('192.168.1.5',name)
                 check = True
                 unknown_count = 0
             else:
@@ -132,7 +132,7 @@ def recognize_faces(ipESP32):
                 cv2.destroyAllWindows()
                 print('successfully recognition')
                 return True
-        if unknown_count >= 500:
+        if unknown_count >= 100:
             print('day la nguoi la')
             now = datetime.datetime.now()
             imgTimeUnknown = now.strftime("%d-%m-%y_%Hh%Mm%Ss")
@@ -141,7 +141,7 @@ def recognize_faces(ipESP32):
             nameUnknown = "Unknown_" + imgTimeUnknown + ".jpg"
 
             urlImage = addImageToStorage('notify',imgPathUnknown,nameUnknown)
-            addNotify(ipESP32,'Co nguoi la',urlImage)
+            addNotify('192.168.1.5','Co nguoi la',urlImage)
             unknown_count = 0
             cam.release()
             cv2.destroyAllWindows()

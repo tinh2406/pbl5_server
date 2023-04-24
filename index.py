@@ -183,4 +183,4 @@ def getBluetooth():
     return jsonify({'message': response.text})
 
 if __name__ == "__main__":
-    app.run(debug=True, host="192.168.115.108", port=os.environ.get("PORT", 3000))
+    app.run(debug=True, host="192.168.43.5", port=os.environ.get("PORT", 3000))
