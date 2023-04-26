@@ -1,8 +1,5 @@
-dataSet
 face_recognize
-test.db
 __pycache__
-recognizer
 test.py
 video.mp4
 viDieuKhien.py
