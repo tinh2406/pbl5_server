@@ -7,7 +7,7 @@ import time
 import datetime
 import sys
 sys.path.append('../')
-from firestore import addImageToStorage,addHistory,addNotify
+# from firestore import addImageToStorage,addHistory,addNotify
 
 
 # esp32-cam
@@ -131,5 +131,5 @@ def recognize_faces():
         if k == 27:
             break
 
-# recognize_faces()
+#recognize_faces()
         
