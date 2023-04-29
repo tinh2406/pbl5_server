@@ -6,12 +6,13 @@ import io
 import numpy as np
 import requests
 from PIL import Image
+import json
 import time
 from sqlite import insert,getNameFaceWithPhone,getNamePhonewithId,deleteFaceWithId
 from trainData import train
 from detectFaces import getFace
 from face_recognition import recognize_faces
-from firestore import updatePassword,addUser,addUserExists,resetVerifyCode,deviceIsInPhone,setStatusDoor,addHistory,getUserByPhone,getNameDevice
+from firestore import updatePassword,addUser,addUserExists,resetVerifyCode,deviceIsInPhone,setStatusDoor,addHistory,getUserByPhone,getNameDevice,updataIPfirebase
 app = Flask(__name__)
 
 cam = cv2.VideoCapture(0)
@@ -182,5 +183,22 @@ def getBluetooth():
     print(response.text)
     return jsonify({'message': response.text})
 
+@app.route('/updateIP', methods=['POST'])
+def updateIP():
+    data = request.get_data(as_text=True)
+    my_dict = json.loads(data)
+    phone = my_dict['phone']
+    preIP = my_dict['previousIP']
+    curIP = my_dict['currentIP']
+    print(phone)
+    print(preIP)
+    print(curIP)
+    return jsonify({'message': 'success'}) 
+
+@app.route('/updateIP1', methods=['POST'])
+def updateIP1():
+    updataIPfirebase('0912459841','192.168.1.5','192.168.1.1')
+    return jsonify({"message":"Password unchanged"}),403
+
 if __name__ == "__main__":
-    app.run(debug=True, host="192.168.115.108", port=os.environ.get("PORT", 3000))
+    app.run(debug=True, host="192.168.1.6", port=os.environ.get("PORT", 3000))

@@ -110,10 +110,10 @@ def addHistory(device,message):
    time = datetime.datetime.now() + datetime.timedelta(hours=-7)
    db.collection('historys').document().set({'device':devices_ref,"message":message,'createAt':time})
 
-def addNotify(device,message):
+def addNotify(device,message,urlImage):
    devices_ref = db.collection('devices').document(device)
    time = datetime.datetime.now() + datetime.timedelta(hours=-7)
-   res = db.collection('notifys').add({'device':devices_ref,"message":message,'createAt':time})
+   res = db.collection('notifys').add({'device':devices_ref,"message":message,'createAt':time,'urlImgae':urlImage})
    docs = db.collection("users").where('addressDoor','array_contains',devices_ref).stream()
    
    devices = []
@@ -210,4 +210,20 @@ def getNameDevice(device):
    if doc['name']=="":
       return device
    return doc['name']
+
+def updataIPfirebase(phone,preIp,curIP):
+   doc_ref = db.collection('deviceUser').document(phone)
+   doc_data = doc_ref.where('devices','==','/device/' + preIp).get().to_dict()
+   for doc in doc_data:
+      d = doc.to_dict()
+      print(d)
+   # Lấy giá trị của trường 'devices'
+   
+   doc_ref.update({
+    'devices': firestore.ArrayUnion(['/devices/' + preIp]),
+    'devices': firestore.ArrayRemove(['/devices/' + curIP])
+   })
+   print(doc_ref)
+   return True
+
    
