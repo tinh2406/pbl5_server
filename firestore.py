@@ -213,17 +213,31 @@ def getNameDevice(device):
 
 def updataIPfirebase(phone,preIp,curIP):
    doc_ref = db.collection('deviceUser').document(phone)
-   doc_data = doc_ref.where('devices','==','/device/' + preIp).get().to_dict()
-   for doc in doc_data:
-      d = doc.to_dict()
-      print(d)
+   doc_data = doc_ref.get().to_dict()
+   if doc_data==None:
+      return
+   newDevices = []
+   for device in doc_data['devices']:
+      if device.get().id==preIp:
+         device_ref = db.collection('devices').document(curIP)
+         newDevices.append(device_ref)
+      else:
+         newDevices.append(device)
+   doc_ref.set({
+      "devices": newDevices
+   })
+   # for doc in doc_data:
+   #    d = doc.to_dict()
+   #    print(d)
    # Lấy giá trị của trường 'devices'
    
-   doc_ref.update({
-    'devices': firestore.ArrayUnion(['/devices/' + preIp]),
-    'devices': firestore.ArrayRemove(['/devices/' + curIP])
-   })
-   print(doc_ref)
+   # doc_ref.update({
+   #  'devices': firestore.ArrayUnion(['/devices/' + preIp]),
+   #  'devices': firestore.ArrayRemove(['/devices/' + curIP])
+   # })
+   # print(doc_ref)
    return True
+
+updataIPfirebase('0912459841','192.168.1.5','192.168.1.6')
 
    
