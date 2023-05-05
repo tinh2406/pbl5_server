@@ -87,6 +87,8 @@ def recognize_faces(ipESP32):
         
         blinks = 0
         last_blink_time = time.time()
+        eye_privious_right = 1
+        eye_privious_left = 1
 
         while True:
             
@@ -166,12 +168,15 @@ def recognize_faces(ipESP32):
                 cv2.putText(img, state_r, tuple(eye_rect_r[0:2]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color_r, 2)
                 
                 
-                if float(state_l) < 0.1 and float(state_r) < 0.1:
-                    if time.time() - last_blink_time < 0.5:
-                        continue
-                    blinks += 1
-                    last_blink_time = time.time()
-                print(blinks)
+                if float(state_l) < 0.5 and float(state_r) < 0.5:
+                    # if time.time() - last_blink_time < 1:
+                    #     continue
+                    if eye_privious_right > 0.5 or eye_privious_left > 0.5:
+                        blinks += 1
+                        last_blink_time = time.time()
+                eye_privious_right = float(state_r)
+                eye_privious_left = float(state_l)
+                print('so lan nhay mat ', blinks)
                 if blinks >= 2:
                     check = False
                     for(x,y,w,h) in faces:
@@ -232,8 +237,8 @@ def recognize_faces(ipESP32):
                     cv2.putText(img, 'Fake Face', (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
                 # reset blink count if no blinks detected in the last 5 seconds
-                if time.time() - last_blink_time > 5:
-                    blinks = 0
+                # if time.time() - last_blink_time > 5:
+                #     blinks = 0
             cv2.imshow('camera',img)
             k = cv2.waitKey(10) & 0xff # Press 'ESC' for exiting video
             if k == 27:
