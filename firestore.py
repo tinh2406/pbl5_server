@@ -6,6 +6,7 @@ import random
 import json
 from sendMessage import sendVerifyCodeToPhone
 import datetime
+
 # Use a service account.
 cred = credentials.Certificate('./serviceAccount.json')
 
@@ -28,37 +29,37 @@ def addUserOwner(phone,name,password,devices,addressBluetooth):
 })
 
 def addUser(phone, name, phoneOwner):
-    users_ref = db.collection('users').document(phone)
-    doc = users_ref.get().to_dict()
-    if doc != None:
-        time = datetime.datetime.now() + datetime.timedelta(minutes=10, hours=-7)
-        doc_ref = db.collection('verifys').document(phone)
-        code = random.randint(10000, 99999)
-        doc_ref.set({"code": code, "expireAt": time})
-        sendVerifyCodeToPhone(phone,f"Mã để tạo lại tài khoản của bạn là {code}")
-        return "exists account"
+   users_ref = db.collection('users').document(phone)
+   doc = users_ref.get().to_dict()
+   if doc != None:
+      time = datetime.datetime.now() + datetime.timedelta(minutes=10, hours=-7)
+      doc_ref = db.collection('verifys').document(phone)
+      code = random.randint(10000, 99999)
+      doc_ref.set({"code": code, "expireAt": time})
+      sendVerifyCodeToPhone(phone,f"Mã để tạo lại tài khoản của bạn là {code}")
+      return "exists account"
 
-    users_ref = db.collection('users').document(phoneOwner)
-    doc = users_ref.get().to_dict()
-    if doc == None:
-        return "no have owner"
+   users_ref = db.collection('users').document(phoneOwner)
+   doc = users_ref.get().to_dict()
+   if doc == None:
+      return "no have owner"
 
-    devices = doc["devices"]
-    if doc['owner'] == True:
-        owner = phoneOwner
-    else:
-        owner = doc['owner']
-    password = random.randint(10000, 99999)
-    sendVerifyCodeToPhone(phone,f"Mật mã tài khoản của bạn là {password}")
+   devices = doc["devices"]
+   if doc['owner'] == True:
+      owner = phoneOwner
+   else:
+      owner = doc['owner']
+   password = random.randint(10000, 99999)
+   sendVerifyCodeToPhone(phone,f"Mật mã tài khoản của bạn là {password}")
 
-    doc_ref = db.collection('users').document(phone)
-    doc_ref.set({
-        'name': name,
-        'password': str(password),
-        'devices': devices,
-        'owner': owner,
-        'phone': phone})
-    return password
+   doc_ref = db.collection('users').document(phone)
+   doc_ref.set({
+      'name': name,
+      'password': str(password),
+      'devices': devices,
+      'owner': owner,
+      'phone': phone})
+   return password
 
 
 
@@ -115,15 +116,15 @@ def resetVerifyCode(phone):
    return True
 
 
-def updatePassword(phone,password,newPassword):
-   users_ref = db.collection('users').document(phone)
-   doc = users_ref.get().to_dict()
-   if doc == None or doc["password"]!=password:
-      return False
-   doc["password"] = newPassword
+def updatePassword(phone, password, newPassword):
+    users_ref = db.collection('users').document(phone)
+    doc = users_ref.get().to_dict()
+    if doc == None or doc["password"] != password:
+        return False
+    doc["password"] = newPassword
 
-   users_ref.set(doc)
-   return True
+    users_ref.set(doc)
+    return True
 
 def addHistory(device,message,phone):
    device_data = db.collection('devices').document(device).get().to_dict()
@@ -145,54 +146,55 @@ def addNotify(device,message,phone,imageName=None):
 
    for i in docs:
       try:
-         tokens = db.collection('tokens').document(i.id).get().to_dict()["devices"]
+         tokens = db.collection('tokens').document(
+                i.id).get().to_dict()["devices"]
          devices.extend(tokens)
       except Exception:
          print()
 
-
-
    notification = messaging.Notification(
-      title='Thông báo', 
-      # body=(json.dumps({"message":message,"id":res[1].id}))),
-      body=message,
-      )
-      
-   
+        title='Thông báo',
+        # body=(json.dumps({"message":message,"id":res[1].id}))),
+        body=message,
+    )
+
 
 # Gửi thông báo với Notification này
    message = messaging.MulticastMessage(
-      notification=notification,
-      data={
-         "id":res[1].id
-      },
-      tokens=devices
-   )
+        notification=notification,
+        data={
+            "id": res[1].id
+        },
+        tokens=devices
+    )
 
    response = messaging.send_multicast(message)
    return True
 
 
-def deviceIsInPhone(device,phone):
-   user = db.collection('users').document(phone).get().to_dict()
-   if not user:
-      return False
-   docs = user['devices'].get().to_dict()['devices']
+def deviceIsInPhone(device, phone):
+    user = db.collection('users').document(phone).get().to_dict()
+    if not user:
+        return False
+    docs = user['devices'].get().to_dict()['devices']
 
-   for i in docs:
-      if i.get().id==device:
-         return True
-   return False
+    for i in docs:
+        if i.get().id == device:
+            return True
+    return False
 
-def setStatusDoor(device,status):
-   device_ref = db.collection('devices').document(device)
-   device_ref.set({'status':status},merge=True)
+
+def setStatusDoor(device, status):
+    device_ref = db.collection('devices').document(device)
+    device_ref.set({'status': status}, merge=True)
 
 
 def getUserByPhone(phone):
-   user_ref = db.collection('users').document(phone)
-   doc = user_ref.get()
-   return doc.to_dict()
+    user_ref = db.collection('users').document(phone)
+    doc = user_ref.get()
+    return doc.to_dict()
+
+
 def getNameDevice(device):
    device_res = db.collection('devices').document(device)
    doc = device_res.get().to_dict()
