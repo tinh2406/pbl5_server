@@ -105,11 +105,6 @@ def updatePassword(phone,password,newPassword):
    users_ref.set(doc)
    return True
 
-def addHistory(device,message):
-   devices_ref = db.collection('devices').document(device)
-   time = datetime.datetime.now() + datetime.timedelta(hours=-7)
-   db.collection('historys').document().set({'device':devices_ref,"message":message,'createAt':time})
-
 def addNotify(device,message,urlImage):
    devices_ref = db.collection('devices').document(device)
    time = datetime.datetime.now() + datetime.timedelta(hours=-7)
@@ -182,7 +177,7 @@ def addImageToStorage(folderInStorage,path,name):
     blob = bucket.blob(file_name_path)
     blob.upload_from_filename(path)
     print(f'Image has been uploaded to {blob.public_url}')
-    return blob.public_url
+    return file_name_path
 
 # image_url = addImageToStorage('notify','./FacialRecognition/imagesSaved/31-03-23_12h26m14s_Duy Nguyen.jpg', 'image_1')
 # print(addHistory('192.168.1.113','duy duc nguyen'))
@@ -226,18 +221,29 @@ def updataIPfirebase(phone,preIp,curIP):
    doc_ref.set({
       "devices": newDevices
    })
-   # for doc in doc_data:
-   #    d = doc.to_dict()
-   #    print(d)
-   # Lấy giá trị của trường 'devices'
-   
-   # doc_ref.update({
-   #  'devices': firestore.ArrayUnion(['/devices/' + preIp]),
-   #  'devices': firestore.ArrayRemove(['/devices/' + curIP])
-   # })
-   # print(doc_ref)
-   return True
+   device_res = db.collection('devices').document(preIp)
+   doc = device_res.get().to_dict()
+   doc['addressDoor']=curIP
+   try:
+      db.collection('devices').document(curIP).set(doc)
+      db.collection('devices').document(preIp).delete()
+      return "Cập nhật thành công"
+   except:
+      return "Lỗi không thể cập nhật"
 
-updataIPfirebase('0912459841','192.168.1.5','192.168.1.6')
+def updateDeviceID(oldIDDevice,newIDDevice):
+   device_res = db.collection('devices').document(oldIDDevice)
+   doc = device_res.get().to_dict()
+   doc['addressDoor']=newIDDevice
+   try:
+      db.collection('devices').document(newIDDevice).set(doc)
+      db.collection('devices').document(oldIDDevice).delete()
+      return "Cập nhật thành công"
+   except:
+      return "Lỗi không thể cập nhật"
+
+# updataIPfirebase('0912459841','192.168.1.5','192.168.1.6')
+# updateDivices('192.168.1.5','192.168.1.7')
+# updataIPfirebase('0912459841','192.168.1.7','192.168.1.6')
 
    

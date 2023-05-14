@@ -193,12 +193,15 @@ def updateIP():
     print(phone)
     print(preIP)
     print(curIP)
+    status = updataIPfirebase(phone,preIP,curIP)
+    print(status)
     return jsonify({'message': 'success'}) 
 
 @app.route('/updateIP1', methods=['POST'])
 def updateIP1():
     updataIPfirebase('0912459841','192.168.1.5','192.168.1.1')
-    return jsonify({"message":"Password unchanged"}),403
+    return jsonify({"message":"Password unchanged"})
 
 if __name__ == "__main__":
-    app.run(debug=True, host="192.168.1.6", port=os.environ.get("PORT", 3000))
+    app.run(debug=True, host="192.168.217.108", port=os.environ.get("PORT", 3000))
+
