@@ -11,7 +11,8 @@ import time
 from sqlite import insert,getNameFaceWithPhone,getNamePhonewithId,deleteFaceWithId
 from trainData import train
 from detectFaces import getFace
-from face_recognition import recognize_faces
+# from face_recognition import recognize_faces
+from face_rec_cam import recognize_faces
 from firestore import updatePassword,addUser,addUserExists,resetVerifyCode,deviceIsInPhone,setStatusDoor,addHistory,getUserByPhone,getNameDevice,updataIPfirebase
 app = Flask(__name__)
 
@@ -110,11 +111,14 @@ def lockDoor():
     phone = data['phone']
     addressDoor = data['addressDoor']
     
-    if not deviceIsInPhone(addressDoor,phone):
-        return jsonify({'message':'unauthorized'}),400
+    # if not deviceIsInPhone(addressDoor,phone):
+    #     return jsonify({'message':'unauthorized'}),400
+    data ={"data": "open" }
+
+    response = requests.post('http://192.168.43.133/unlock',data= data)
 
     setStatusDoor(addressDoor,True)
-    addHistory(addressDoor,getNameDevice(addressDoor)+' open by '+getUserByPhone(phone)['name'])
+    # addHistory(addressDoor,getNameDevice(addressDoor)+' open by '+getUserByPhone(phone)['name'])
     print('Unlocked')
     return jsonify({'message': "Unlocked"})
 
@@ -123,12 +127,14 @@ def unlockDoor():
     data = request.get_json()
     phone = data['phone']
     addressDoor = data['addressDoor']
-    
-    if not deviceIsInPhone(addressDoor,phone):
-        return jsonify({'message':'unauthorized'}),400
+    # if not deviceIsInPhone(addressDoor,phone):
+    #     return jsonify({'message':'unauthorized'}),400
+    # print(phone,addressDoor)
     
     setStatusDoor(addressDoor,False)
     print('Locked')
+    data ={"data": "lock" }
+    response = requests.post('http://192.168.43.133/unlock',data= data)
     # return jsonify({'status': response.status_code})
     return jsonify({'message': "Locked"})
 
@@ -203,5 +209,5 @@ def updateIP1():
     return jsonify({"message":"Password unchanged"})
 
 if __name__ == "__main__":
-    app.run(debug=True, host="192.168.217.108", port=os.environ.get("PORT", 3000))
+    app.run(debug=True, host="192.168.1.5", port=os.environ.get("PORT", 3000))
 

@@ -182,12 +182,14 @@ def addImageToStorage(folderInStorage,path,name):
 # image_url = addImageToStorage('notify','./FacialRecognition/imagesSaved/31-03-23_12h26m14s_Duy Nguyen.jpg', 'image_1')
 # print(addHistory('192.168.1.113','duy duc nguyen'))
 def deviceIsInPhone(device,phone):
+
    devices_ref = db.collection('devices').document(device)
    docs = db.collection("users").where('addressDoor','array_contains',devices_ref).get()
 
    for i in docs:
       if i.id==phone:
          return True
+         
    return False
 
 def setStatusDoor(device,status):
