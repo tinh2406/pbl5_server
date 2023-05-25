@@ -36,12 +36,6 @@ def updatePasswordAPI():
     return jsonify({"message": "Password unchanged"}), 403
 
 
-@app.route("/users/userList", methods=["GET"])
-def getUserListAPI():
-    res = getUserList()
-    return jsonify(res)
-
-
 @app.route("/users/addUser", methods=["POST"])
 def addUserAPI():
     data = request.get_json()
@@ -116,15 +110,13 @@ def upload():
     name = data["name"]
     count = int(data["count"])
     image = data["image"]
-
-    npImage = np.array(Image.open(
-        io.BytesIO(base64.b64decode(image))), 'uint8')
-
-    resGetFace = getFace(cv2.flip(cv2.rotate(
-        npImage, cv2.ROTATE_90_COUNTERCLOCKWISE), 1), phone, name, count)
-    if resGetFace == "Gan chut nua":
-        return jsonify({"message": "Gan chut nua"})
-    if resGetFace == True:
+    
+    npImage = np.array(Image.open(io.BytesIO(base64.b64decode(image))),'uint8')
+    
+    resGetFace = getFace(cv2.flip(cv2.rotate(npImage, cv2.ROTATE_90_COUNTERCLOCKWISE),1),phone,name,count)
+    if resGetFace=="Gan chut nua" or resGetFace=="Khong co mat":
+        return jsonify({"message":resGetFace})
+    if resGetFace==True:
         if count >= 5:
             insert(name, phone)
             train()
@@ -149,14 +141,15 @@ def lockDoor():
 
     setStatusDoor(addressDoor,True)
     # addHistory(addressDoor,getNameDevice(addressDoor)+' open by '+getUserByPhone(phone)['name'])
-    addHistory(addressDoor, getNameDevice(addressDoor) +
-               ' open by '+getUserByPhone(phone)['name'])
+    addHistory(addressDoor,getNameDevice(addressDoor)+' open by '+getUserByPhone(phone)['name'],phone)
     print('locked')
     return jsonify({'message': "locked"})
 
 
+
 @app.route('/unlockDoor', methods=['POST'])
 def unlockDoor():
+    
     data = request.get_json()
     phone = data['phone']
     addressDoor = data['addressDoor']
