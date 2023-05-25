@@ -4,6 +4,7 @@ from firebase_admin import firestore
 from firebase_admin import messaging
 import random
 import json
+from sendMessage import sendVerifyCodeToPhone
 import datetime
 
 # Use a service account.
@@ -14,58 +15,52 @@ app = firebase_admin.initialize_app(cred)
 db = firestore.client()
 
 
-def addUserOwner(phone, name, password, devices, addressBluetooth):
-    doc_ref = db.collection('users').document(phone)
-    doc_ref.set({
-        'name': name,
-        'password': password,
-        'devices': devices,
-        'owner': True,
-        'phone': phone
-    })
 
 
-def getUserList():
-    collection_ref = db.collection('users')
-    docs = collection_ref.get()
-    users = []
-    for doc in docs:
-        user = doc.to_dict()
-        del user["devices"]
-        users.append(user)
 
-    return users
-
+def addUserOwner(phone,name,password,devices,addressBluetooth):
+   doc_ref = db.collection('users').document(phone)
+   doc_ref.set({
+   'name': name,
+   'password': password,
+   'devices': devices,
+   'owner':True,
+   'phone': phone
+})
 
 def addUser(phone, name, phoneOwner):
-    users_ref = db.collection('users').document(phone)
-    doc = users_ref.get().to_dict()
-    if doc != None:
-        time = datetime.datetime.now() + datetime.timedelta(minutes=10, hours=-7)
-        doc_ref = db.collection('verifys').document(phone)
-        doc_ref.set({"code": random.randint(10000, 99999), "expireAt": time})
-        return "exists account"
+   users_ref = db.collection('users').document(phone)
+   doc = users_ref.get().to_dict()
+   if doc != None:
+      time = datetime.datetime.now() + datetime.timedelta(minutes=10, hours=-7)
+      doc_ref = db.collection('verifys').document(phone)
+      code = random.randint(10000, 99999)
+      doc_ref.set({"code": code, "expireAt": time})
+      sendVerifyCodeToPhone(phone,f"Mã để tạo lại tài khoản của bạn là {code}")
+      return "exists account"
 
-    users_ref = db.collection('users').document(phoneOwner)
-    doc = users_ref.get().to_dict()
-    if doc == None:
-        return "no have owner"
+   users_ref = db.collection('users').document(phoneOwner)
+   doc = users_ref.get().to_dict()
+   if doc == None:
+      return "no have owner"
 
-    devices = doc["devices"]
-    if doc['owner'] == True:
-        owner = phoneOwner
-    else:
-        owner = doc['owner']
-    password = random.randint(10000, 99999)
+   devices = doc["devices"]
+   if doc['owner'] == True:
+      owner = phoneOwner
+   else:
+      owner = doc['owner']
+   password = random.randint(10000, 99999)
+   sendVerifyCodeToPhone(phone,f"Mật mã tài khoản của bạn là {password}")
 
-    doc_ref = db.collection('users').document(phone)
-    doc_ref.set({
-        'name': name,
-        'password': str(password),
-        'devices': devices,
-        'owner': owner,
-        'phone': phone})
-    return password
+   doc_ref = db.collection('users').document(phone)
+   doc_ref.set({
+      'name': name,
+      'password': str(password),
+      'devices': devices,
+      'owner': owner,
+      'phone': phone})
+   return password
+
 
 
 def addUserExists(phone, name, phoneOwner, verification):
@@ -89,6 +84,7 @@ def addUserExists(phone, name, phoneOwner, verification):
         owner = doc['owner']
     password = random.randint(10000, 99999)
     db.collection('verifys').document(phone).delete()
+    sendVerifyCodeToPhone(phone,f"Mật mã tài khoản của bạn là {password}")
     doc_ref = db.collection('users').document(phone)
     doc_ref.set({
         'name': name,
@@ -107,16 +103,17 @@ def deleteUser(phone):
     except:
         return "Cannot delete this user"
 
-
 def resetVerifyCode(phone):
-    users_ref = db.collection('users').document(phone)
-    doc = users_ref.get().to_dict()
-    if doc == None:
-        return False
-    time = datetime.datetime.now() + datetime.timedelta(minutes=10, hours=-7)
-    doc_ref = db.collection('verifys').document(phone)
-    doc_ref.set({"code": random.randint(10000, 99999), "expireAt": time})
-    return True
+   users_ref = db.collection('users').document(phone)
+   doc = users_ref.get().to_dict()
+   if doc==None:
+      return False
+   time = datetime.datetime.now() + datetime.timedelta(minutes=10,hours=-7)
+   doc_ref = db.collection('verifys').document(phone)
+   code = random.randint(10000,99999)
+   doc_ref.set({"code":code,"expireAt":time})
+   sendVerifyCodeToPhone(phone,f"Mã xác thực số điện thoại của bạn là {code}")
+   return True
 
 
 def updatePassword(phone, password, newPassword):
@@ -129,36 +126,33 @@ def updatePassword(phone, password, newPassword):
     users_ref.set(doc)
     return True
 
+def addHistory(device,message,phone):
+   device_data = db.collection('devices').document(device).get().to_dict()
+   time = datetime.datetime.now() + datetime.timedelta(hours=-7)
+   db.collection('historys').document().set({'device':device_data,"message":message,'createAt':time,"phone":phone})
 
-def addHistory(device, message):
-    devices_ref = db.collection('devices').document(device)
-    time = datetime.datetime.now() + datetime.timedelta(hours=-7)
-    db.collection('historys').document().set(
-        {'device': devices_ref, "message": message, 'createAt': time})
+def addNotify(device,message,phone,imageName=None):
+   device_data = db.collection('devices').document(device).get().to_dict()
+   time = datetime.datetime.now() + datetime.timedelta(hours=-7)
+   if imageName==None:
+      res = db.collection('notifys').add({'device':device_data,"message":message,'createAt':time,"phone":phone})
+   else:
+      res = db.collection('notifys').add({'device':device_data,"message":message,'createAt':time,"phone":phone,"imgPath":"notify/"+imageName})
 
+   deviceUserref = db.collection("deviceUser").document(phone)
+   docs = db.collection("users").where('devices','==',deviceUserref).get()#[0].to_dict()['devices']
+   
+   devices = []
 
-def addNotify(device, message):
-    devices_ref = db.collection('devices').document(device)
-    time = datetime.datetime.now() + datetime.timedelta(hours=-7)
-    res = db.collection('notifys').add(
-        {'device': devices_ref, "message": message, 'createAt': time})
-    phone = db.collection("deviceUser").where(
-        'devices', 'array_contains', devices_ref).get()[0].id
-    deviceUserref = db.collection("deviceUser").document(phone)
-    docs = db.collection("users").where(
-        'devices', '==', deviceUserref).get()  # [0].to_dict()['devices']
-
-    devices = []
-
-    for i in docs:
-        try:
-            tokens = db.collection('tokens').document(
+   for i in docs:
+      try:
+         tokens = db.collection('tokens').document(
                 i.id).get().to_dict()["devices"]
-            devices.extend(tokens)
-        except Exception:
-            print()
+         devices.extend(tokens)
+      except Exception:
+         print()
 
-    notification = messaging.Notification(
+   notification = messaging.Notification(
         title='Thông báo',
         # body=(json.dumps({"message":message,"id":res[1].id}))),
         body=message,
@@ -166,7 +160,7 @@ def addNotify(device, message):
 
 
 # Gửi thông báo với Notification này
-    message = messaging.MulticastMessage(
+   message = messaging.MulticastMessage(
         notification=notification,
         data={
             "id": res[1].id
@@ -174,8 +168,8 @@ def addNotify(device, message):
         tokens=devices
     )
 
-    response = messaging.send_multicast(message)
-    return True
+   response = messaging.send_multicast(message)
+   return True
 
 
 def deviceIsInPhone(device, phone):
@@ -202,8 +196,21 @@ def getUserByPhone(phone):
 
 
 def getNameDevice(device):
-    device_res = db.collection('devices').document(device)
-    doc = device_res.get().to_dict()
-    if doc['name'] == "":
-        return device
-    return doc['name']
+   device_res = db.collection('devices').document(device)
+   doc = device_res.get().to_dict()
+   if doc['name']=="":
+      return device
+   return doc['name']
+   
+
+def updateDeviceID(oldIDDevice,newIDDevice):
+   device_res = db.collection('devices').document(oldIDDevice)
+   doc = device_res.get().to_dict()
+   doc['addressDoor']=newIDDevice
+   try:
+      db.collection('devices').document(newIDDevice).set(doc)
+      db.collection('devices').document(oldIDDevice).delete()
+      return "Cập nhật thành công"
+   except:
+      return "Lỗi không thể cập nhật"
+

@@ -9,7 +9,7 @@ from PIL import Image
 from sqlite import insert, getNameFaceWithPhone, getNamePhonewithId, deleteFaceWithId
 from trainData import train
 from detectFaces import getFace
-from firestore import deleteUser, getUserList, updatePassword, addUser, addUserExists, resetVerifyCode, deviceIsInPhone, setStatusDoor, addHistory, getUserByPhone, getNameDevice
+from firestore import updatePassword,addUser,addUserExists,resetVerifyCode,deviceIsInPhone,setStatusDoor,addHistory,getUserByPhone,getNameDevice,deleteUser
 app = Flask(__name__)
 
 
@@ -24,12 +24,6 @@ def updatePasswordAPI():
     if updatePassword(data["phone"], data["password"], data["newPassword"]):
         return jsonify({"message": "Update password successfully"})
     return jsonify({"message": "Password unchanged"}), 403
-
-
-@app.route("/users/userList", methods=["GET"])
-def getUserListAPI():
-    res = getUserList()
-    return jsonify(res)
 
 
 @app.route("/users/addUser", methods=["POST"])
@@ -106,15 +100,13 @@ def upload():
     name = data["name"]
     count = int(data["count"])
     image = data["image"]
-
-    npImage = np.array(Image.open(
-        io.BytesIO(base64.b64decode(image))), 'uint8')
-
-    resGetFace = getFace(cv2.flip(cv2.rotate(
-        npImage, cv2.ROTATE_90_COUNTERCLOCKWISE), 1), phone, name, count)
-    if resGetFace == "Gan chut nua":
-        return jsonify({"message": "Gan chut nua"})
-    if resGetFace == True:
+    
+    npImage = np.array(Image.open(io.BytesIO(base64.b64decode(image))),'uint8')
+    
+    resGetFace = getFace(cv2.flip(cv2.rotate(npImage, cv2.ROTATE_90_COUNTERCLOCKWISE),1),phone,name,count)
+    if resGetFace=="Gan chut nua" or resGetFace=="Khong co mat":
+        return jsonify({"message":resGetFace})
+    if resGetFace==True:
         if count >= 5:
             insert(name, phone)
             train()
@@ -130,19 +122,17 @@ def lockDoor():
     print(data)
     phone = data['phone']
     addressDoor = data['addressDoor']
-
     if not deviceIsInPhone(addressDoor, phone):
         return jsonify({'message': 'unauthorized'}), 400
-
-    setStatusDoor(addressDoor, True)
-    addHistory(addressDoor, getNameDevice(addressDoor) +
-               ' open by '+getUserByPhone(phone)['name'])
+    setStatusDoor(addressDoor,True)
+    addHistory(addressDoor,getNameDevice(addressDoor)+' open by '+getUserByPhone(phone)['name'],phone)
     print('Unlocked')
     return jsonify({'message': "Unlocked"})
 
 
 @app.route('/lockDoor', methods=['POST'])
 def unlockDoor():
+    
     data = request.get_json()
     phone = data['phone']
     addressDoor = data['addressDoor']
@@ -157,5 +147,4 @@ def unlockDoor():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="192.168.10.49",
-            port=os.environ.get("PORT", 3000))
+    app.run(debug=True, host="192.168.43.98", port=os.environ.get("PORT", 3000))
