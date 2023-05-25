@@ -168,11 +168,11 @@ def addHistory(device, message):
         {'device': devices_ref, "message": message, 'createAt': time})
 
 
-def addNotify(device, message):
+def addNotify(device, message,imgPath):
     devices_ref = db.collection('devices').document(device)
     time = datetime.datetime.now() + datetime.timedelta(hours=-7)
     res = db.collection('notifys').add(
-        {'device': devices_ref, "message": message, 'createAt': time})
+        {'device': devices_ref, "message": message, 'createAt': time, 'imgPath': imgPath})
     phone = db.collection("deviceUser").where(
         'devices', 'array_contains', devices_ref).get()[0].id
     deviceUserref = db.collection("deviceUser").document(phone)

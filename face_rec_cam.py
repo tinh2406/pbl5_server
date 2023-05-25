@@ -128,7 +128,7 @@ def recognize_faces(ipESP32):
 
     print('start recognize_faces')
 
-    cap  = VideoStream(src=0).start()
+    # cap  = VideoStream(src=0).start()
     # urlImg= 'http://192.168.1.6/cam-hi.jpg'
 
     try:
@@ -156,15 +156,15 @@ def recognize_faces(ipESP32):
         
         while True:
             # esp32
-            # img_resp=urllib.request.urlopen(urlImg)
-            # imgnp=np.array(bytearray(img_resp.read()),dtype=np.uint8)
-            # frame = cv2.imdecode(imgnp,-1)
-            # frame = imutils.resize(frame, width=600)
-            # frame = cv2.flip(frame,1)
-
-            frame = cap.read()
+            img_resp=urllib.request.urlopen(urlImg)
+            imgnp=np.array(bytearray(img_resp.read()),dtype=np.uint8)
+            frame = cv2.imdecode(imgnp,-1)
             frame = imutils.resize(frame, width=600)
-            frame = cv2.flip(frame, 1)
+            frame = cv2.flip(frame,1)
+
+            # frame = cap.read()
+            # frame = imutils.resize(frame, width=600)
+            # frame = cv2.flip(frame, 1)
 
             gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
 
@@ -182,7 +182,7 @@ def recognize_faces(ipESP32):
                 nameUnknown = "Unknown_" + imgTimeUnknown + ".jpg"
                 urlImage = addImageToStorage('notify',imgPathUnknown,nameUnknown)
                 addNotify(ipESP32,'Co nguoi la',urlImage)
-                cap.stop()
+                # cap.stop()
                 cv2.destroyAllWindows()
                 return False
 
@@ -297,20 +297,20 @@ def recognize_faces(ipESP32):
                                     now = datetime.datetime.now()
                                     imgTime = now.strftime("%d-%m-%y_%Hh%Mm%Ss")
                                     imgPathRecognize = "./imagesSaved/" + imgTime +"_"+ name + ".jpg" 
-                                    # addHistory(ipESP32,name)
+                                    addHistory(ipESP32,name)
                                     # check = True
                                     unknown_count = 0
                                     cv2.imwrite(imgPathRecognize, frame)
                                     cv2.destroyAllWindows()
                                     print('successfully recognition')
-                                    cap.stop()
+                                    # cap.stop()
                                     return True
                                 else:
                                     name = "Unknown"
                                     unknown_count += 1
                 except:
                     pass
-            if unknown_count >= 100:
+            if unknown_count >= 50:
                 print('day la nguoi la')
                 finishRecognition(urlUnlock,False)
                 now = datetime.datetime.now()
@@ -319,15 +319,15 @@ def recognize_faces(ipESP32):
                 cv2.imwrite(imgPathUnknown,frame)
                 nameUnknown = "Unknown_" + imgTimeUnknown + ".jpg"
                 urlImage = addImageToStorage('notify',imgPathUnknown,nameUnknown)
-                # addNotify(ipESP32,'Co nguoi la',urlImage)
+                addNotify(ipESP32,'Co nguoi la ',urlImage)
                 unknown_count = 0
                 cv2.destroyAllWindows()
                 print('finished recognition: failed')
-                cap.stop()
+                # cap.stop()
                 return False
             cv2.imshow('Face Recognition', frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
-                cap.stop()
+                # cap.stop()
                 break
     except Exception as e:
         traceback.print_exc()
@@ -337,17 +337,17 @@ def recognize_faces(ipESP32):
         cv2.destroyAllWindows()
         return False
 
-    cap.stop()
+    # cap.stop()
     cv2.destroyAllWindows()
 
 def finishRecognition(urlUnlock,status):
-    # if status == True:
-    #     data = {'data': 'open'}
-    # else:
-    #     data = {'data': 'lock'}
-    # response = requests.post(urlUnlock, data=data)
-    # return response
-    return True
+    if status == True:
+        data = {'data': 'open'}
+    else:
+        data = {'data': 'lock'}
+    response = requests.post(urlUnlock, data=data)
+    return response
+    # return True
 
 # print('kiem tra thuc thi server')
 # recognize_faces('192.168.1.6')

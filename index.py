@@ -134,28 +134,28 @@ def upload():
     return jsonify({"message": "khong co mat"})
 
 
-@app.route('/unlockDoor', methods=['POST'])
+@app.route('/lockDoor', methods=['POST'])
 def lockDoor():
     data = request.get_json()
     phone = data['phone']
     addressDoor = data['addressDoor']
+    print(phone)
+    print(addressDoor)
     
     if not deviceIsInPhone(addressDoor, phone):
         return jsonify({'message': 'unauthorized'}), 400
-    # if not deviceIsInPhone(addressDoor,phone):
-    #     return jsonify({'message':'unauthorized'}),400
-    data ={"data": "open" }
-    response = requests.post('http://192.168.43.133/unlock',data= data)
+    data ={"data": "lock" }
+    response = requests.post(f'http://{addressDoor}/unlock',data= data)
 
     setStatusDoor(addressDoor,True)
     # addHistory(addressDoor,getNameDevice(addressDoor)+' open by '+getUserByPhone(phone)['name'])
     addHistory(addressDoor, getNameDevice(addressDoor) +
                ' open by '+getUserByPhone(phone)['name'])
-    print('Unlocked')
-    return jsonify({'message': "Unlocked"})
+    print('locked')
+    return jsonify({'message': "locked"})
 
 
-@app.route('/lockDoor', methods=['POST'])
+@app.route('/unlockDoor', methods=['POST'])
 def unlockDoor():
     data = request.get_json()
     phone = data['phone']
@@ -164,12 +164,12 @@ def unlockDoor():
     if not deviceIsInPhone(addressDoor, phone):
         return jsonify({'message': 'unauthorized'}), 400
     
-    data ={"data": "lock" }
-    response = requests.post('http://192.168.43.133/unlock',data= data)
+    data ={"data": "open" }
+    response = requests.post(f'http://{addressDoor}/unlock',data= data)
     setStatusDoor(addressDoor,False)
-    print('Locked')
+    print('Unlocked')
     # return jsonify({'status': response.status_code})
-    return jsonify({'message': "Locked"})
+    return jsonify({'message': "unlocked"})
 
 
 @app.route('/get_image',methods=['GET'])
@@ -242,5 +242,5 @@ def updateIP1():
     return jsonify({"message":"Password unchanged"})
 
 if __name__ == "__main__":
-    app.run(debug=True, host="192.168.1.5", port=os.environ.get("PORT", 3000))
+    app.run(debug=True, host="192.168.43.140", port=os.environ.get("PORT", 3000))
 
