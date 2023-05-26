@@ -120,7 +120,7 @@ cascadePath = "FacialRecognition/haarcascade_frontalface_default.xml"
 # recognizer.read('./trainer/trainer.yml')
 # cascadePath = "./haarcascade_frontalface_default.xml"
 faceCascade = cv2.CascadeClassifier(cascadePath);
-def recognize_faces(ipESP32):
+def recognize_faces(ipESP32,phone):
     
     # Load The Custom Classifier
 
@@ -181,7 +181,7 @@ def recognize_faces(ipESP32):
                 cv2.imwrite(imgPathUnknown,frame)
                 nameUnknown = "Unknown_" + imgTimeUnknown + ".jpg"
                 urlImage = addImageToStorage('notify',imgPathUnknown,nameUnknown)
-                addNotify(ipESP32,'Co nguoi la',urlImage)
+                addNotify(ipESP32,'Co nguoi la',phone,urlImage)
                 # cap.stop()
                 cv2.destroyAllWindows()
                 return False
@@ -297,7 +297,7 @@ def recognize_faces(ipESP32):
                                     now = datetime.datetime.now()
                                     imgTime = now.strftime("%d-%m-%y_%Hh%Mm%Ss")
                                     imgPathRecognize = "./imagesSaved/" + imgTime +"_"+ name + ".jpg" 
-                                    addHistory(ipESP32,name)
+                                    addHistory(ipESP32,'open by ' + name,phone)
                                     # check = True
                                     unknown_count = 0
                                     cv2.imwrite(imgPathRecognize, frame)
@@ -319,7 +319,7 @@ def recognize_faces(ipESP32):
                 cv2.imwrite(imgPathUnknown,frame)
                 nameUnknown = "Unknown_" + imgTimeUnknown + ".jpg"
                 urlImage = addImageToStorage('notify',imgPathUnknown,nameUnknown)
-                addNotify(ipESP32,'Co nguoi la ',urlImage)
+                addNotify(ipESP32,'Co nguoi la ',phone,urlImage)
                 unknown_count = 0
                 cv2.destroyAllWindows()
                 print('finished recognition: failed')

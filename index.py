@@ -192,13 +192,17 @@ def callapi():
 @app.route('/recognize_face',methods = ['POST'])
 def handle_recognize_face():
     print('co yeu cau')
-    ipAddressESP = request.get_data(as_text=True)
+    data = request.get_data(as_text=True)
+    my_dict = json.loads(data)
+    ipAddressESP = my_dict['ipAddressESP']
+    phone = my_dict['phone']
     print('Received data:', ipAddressESP)
+    print(phone)
     # urlUnlock ='http://192.168.1.7/unlock'
     # data = {'data': 'open'}
     # time.sleep(10)
     # response = requests.post(urlUnlock, data=data)
-    check = recognize_faces(ipAddressESP)
+    check = recognize_faces(ipAddressESP,phone)
     return 'True'
 
 @app.route('/getWifi',methods=['GET'])
