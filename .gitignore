@@ -4,7 +4,7 @@ test.py
 video.mp4
 viDieuKhien.py
 train
-/facenet/
+facenet/
 model/20180402-114759.pb
 model/facemodel
 model/model-20180402-114759.ckpt-275.data-00000-of-00001
