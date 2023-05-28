@@ -281,7 +281,7 @@ def recognize_faces(ipESP32,phone):
                                 print("Name: {}, Probability: {}".format(best_name, best_class_probabilities))
 
 
-                                if best_class_probabilities > 0.60:
+                                if best_class_probabilities > 0.52:
                                     cv2.rectangle(frame, (bb[i][0], bb[i][1]), (bb[i][2], bb[i][3]), (0, 255, 0), 2)
                                     text_x = bb[i][0]
                                     text_y = bb[i][3] + 20

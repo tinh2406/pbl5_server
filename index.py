@@ -195,6 +195,7 @@ def handle_recognize_face():
     data = request.get_data(as_text=True)
     my_dict = json.loads(data)
     ipAddressESP = my_dict['ipAddressESP']
+    print('here')
     phone = my_dict['phone']
     print('Received data:', ipAddressESP)
     print(phone)
@@ -239,5 +240,5 @@ def updateIP1():
     return jsonify({"message":"Password unchanged"})
 
 if __name__ == "__main__":
-    app.run(debug=True, host="192.168.43.140", port=os.environ.get("PORT", 3000))
+    app.run(debug=True, host="192.168.1.3", port=os.environ.get("PORT", 3000))
 

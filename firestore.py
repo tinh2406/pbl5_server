@@ -138,7 +138,7 @@ def addNotify(device,message,phone,imageName=None):
    if imageName==None:
       res = db.collection('notifys').add({'device':device_data,"message":message,'createAt':time,"phone":phone})
    else:
-      res = db.collection('notifys').add({'device':device_data,"message":message,'createAt':time,"phone":phone,"imgPath":"notify/"+imageName})
+      res = db.collection('notifys').add({'device':device_data,"message":message,'createAt':time,"phone":phone,"imgPath":imageName})
 
    deviceUserref = db.collection("deviceUser").document(phone)
    docs = db.collection("users").where('devices','==',deviceUserref).get()#[0].to_dict()['devices']
@@ -228,6 +228,16 @@ def updataIPfirebase(phone,preIp,curIP):
    })
    device_res = db.collection('devices').document(preIp)
    doc = device_res.get().to_dict()
+   if not doc:
+      doc = {}
+      doc['addressBluetooth'] = 'thieu'
+      doc['name'] = 'thieu'
+      doc['status'] = False
+      newDevices.append(db.collection('devices').document(curIP))
+      doc_ref.set({
+         "devices": newDevices
+      })
+
    doc['addressDoor']=curIP
    try:
       db.collection('devices').document(curIP).set(doc)
@@ -246,3 +256,5 @@ def updateDeviceID(oldIDDevice,newIDDevice):
       return "Cập nhật thành công"
    except:
       return "Lỗi không thể cập nhật"
+   
+updataIPfirebase('0912459841','192.168.1.7','192.168.1.8')
