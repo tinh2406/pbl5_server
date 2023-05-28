@@ -5,10 +5,10 @@ video.mp4
 viDieuKhien.py
 train
 facenet/
-model/20180402-114759.pb
-model/facemodel
-model/model-20180402-114759.ckpt-275.data-00000-of-00001
-model/model-20180402-114759.ckpt-275.index
-model/models\model-20180402-114759.meta
+models/20180402-114759.pb
+models/facemodel
+models/model-20180402-114759.ckpt-275.data-00000-of-00001
+models/model-20180402-114759.ckpt-275.index
+models/models\model-20180402-114759.meta
 imagesSaved/
 
