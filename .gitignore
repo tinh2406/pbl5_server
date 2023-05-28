@@ -6,9 +6,9 @@ viDieuKhien.py
 train
 facenet/
 models/20180402-114759.pb
-models/facemodel
+models/facemodel.pkl
 models/model-20180402-114759.ckpt-275.data-00000-of-00001
 models/model-20180402-114759.ckpt-275.index
-models/models\model-20180402-114759.meta
+models/model-20180402-114759.meta
 imagesSaved/
 
