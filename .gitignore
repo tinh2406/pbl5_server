@@ -5,10 +5,6 @@ video.mp4
 viDieuKhien.py
 train
 facenet/
-models/20180402-114759.pb
-models/facemodel.pkl
-models/model-20180402-114759.ckpt-275.data-00000-of-00001
-models/model-20180402-114759.ckpt-275.index
-models/model-20180402-114759.meta
-imagesSaved/
+models/
+face_rec_cam_test.py
 
