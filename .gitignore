@@ -1,10 +1,9 @@
 face_recognize
 __pycache__
-test.py
 video.mp4
 viDieuKhien.py
 train
-facenet/
+facenet/Models/
+facenet/src/models/
 models/
-face_rec_cam_test.py
 
