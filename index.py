@@ -112,7 +112,7 @@ def upload():
     image = data["image"]
     
     npImage = np.array(Image.open(io.BytesIO(base64.b64decode(image))),'uint8')
-    
+    npImage = cv2.cvtColor(npImage, cv2.COLOR_BGR2RGB)
     resGetFace = getFace(cv2.flip(cv2.rotate(npImage, cv2.ROTATE_90_COUNTERCLOCKWISE),1),phone,name,count)
     if resGetFace!=True:
         return jsonify({"message":resGetFace})
