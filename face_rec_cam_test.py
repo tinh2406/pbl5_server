@@ -113,13 +113,7 @@ with tf.Graph().as_default() as graph1:
 
         people_detected = set()
         person_detected = collections.Counter()
-recognizer = cv2.face.LBPHFaceRecognizer_create()
-recognizer.read('recognizer/trainningData.xml')
-cascadePath = "FacialRecognition/haarcascade_frontalface_default.xml"
-# test
-# recognizer.read('./trainer/trainer.yml')
-# cascadePath = "./haarcascade_frontalface_default.xml"
-faceCascade = cv2.CascadeClassifier(cascadePath);
+
 def recognize_faces():
     
     # Load The Custom Classifier

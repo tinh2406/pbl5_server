@@ -280,15 +280,16 @@ def create_mtcnn(sess, model_path):
     with tf.compat.v1.variable_scope('pnet'):
         data = tf.compat.v1.placeholder(tf.float32, (None,None,None,3), 'input')
         pnet = PNet({'data':data})
-        pnet.load(os.path.join(model_path, 'det1.npy'), sess)
+        #### Đường dẫn tuyệt đối, sửa lại theo từng máy
+        pnet.load(os.path.join(model_path, 'D:/StudySpace/python/pbl5/facenet/src/align/det1.npy'), sess)
     with tf.compat.v1.variable_scope('rnet'):
         data = tf.compat.v1.placeholder(tf.float32, (None,24,24,3), 'input')
         rnet = RNet({'data':data})
-        rnet.load(os.path.join(model_path, 'det2.npy'), sess)
+        rnet.load(os.path.join(model_path, 'D:/StudySpace/python/pbl5/facenet/src/align/det2.npy'), sess)
     with tf.compat.v1.variable_scope('onet'):
         data = tf.compat.v1.placeholder(tf.float32, (None,48,48,3), 'input')
         onet = ONet({'data':data})
-        onet.load(os.path.join(model_path, 'det3.npy'), sess)
+        onet.load(os.path.join(model_path, 'D:/StudySpace/python/pbl5/facenet/src/align/det3.npy'), sess)
         
     pnet_fun = lambda img : sess.run(('pnet/conv4-2/BiasAdd:0', 'pnet/prob1:0'), feed_dict={'pnet/input:0':img})
     rnet_fun = lambda img : sess.run(('rnet/conv5-2/conv5-2:0', 'rnet/prob1:0'), feed_dict={'rnet/input:0':img})
