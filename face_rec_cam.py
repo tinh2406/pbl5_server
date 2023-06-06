@@ -113,13 +113,14 @@ with tf.Graph().as_default() as graph1:
 
         people_detected = set()
         person_detected = collections.Counter()
-recognizer = cv2.face.LBPHFaceRecognizer_create()
-recognizer.read('recognizer/trainningData.xml')
-cascadePath = "FacialRecognition/haarcascade_frontalface_default.xml"
-# test
-# recognizer.read('./trainer/trainer.yml')
-# cascadePath = "./haarcascade_frontalface_default.xml"
-faceCascade = cv2.CascadeClassifier(cascadePath);
+
+def findFace(img):
+    img = imutils.resize(img, width=600)
+    img = cv2.flip(img,1)
+
+    bounding_boxes, _ = detect_face.detect_face(img, MINSIZE, pnet, rnet, onet, THRESHOLD, FACTOR)
+
+    return bounding_boxes,_
 def recognize_faces(ipESP32,phone):
     
     # Load The Custom Classifier
