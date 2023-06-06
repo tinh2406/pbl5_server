@@ -114,7 +114,7 @@ def upload():
     npImage = np.array(Image.open(io.BytesIO(base64.b64decode(image))),'uint8')
     
     resGetFace = getFace(cv2.flip(cv2.rotate(npImage, cv2.ROTATE_90_COUNTERCLOCKWISE),1),phone,name,count)
-    if resGetFace=="Gan chut nua" or resGetFace=="Khong co mat":
+    if resGetFace!=True:
         return jsonify({"message":resGetFace})
     if resGetFace==True:
         if count >= 5:
@@ -123,7 +123,7 @@ def upload():
             return jsonify({"message": "success"})
         else:
             return jsonify({"message": "need further data"})
-    return jsonify({"message": "khong co mat"})
+    return jsonify({"message": "Không có mặt"})
 
 
 @app.route('/lockDoor', methods=['POST'])
