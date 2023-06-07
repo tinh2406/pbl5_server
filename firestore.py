@@ -257,4 +257,4 @@ def updateDeviceID(oldIDDevice,newIDDevice):
    except:
       return "Lỗi không thể cập nhật"
    
-updataIPfirebase('0912459841','192.168.1.7','192.168.1.8')
+# updataIPfirebase('0912459841','192.168.1.7','192.168.1.8')

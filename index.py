@@ -9,7 +9,7 @@ from PIL import Image
 import json
 import time
 from sqlite import insert,getNameFaceWithPhone,getNamePhonewithId,deleteFaceWithId
-from trainData import train
+# from trainData import train
 # from face_recognition import recognize_faces
 from face_rec_cam import recognize_faces
 from sqlite import insert, getNameFaceWithPhone, getNamePhonewithId, deleteFaceWithId
@@ -94,7 +94,7 @@ def deleteFaceAPI(id):
         os.rmdir(path)
     except:
         print("")
-    train()
+    # train()
     return jsonify({"message": "face deleted successfully"}), 200
 
 
@@ -119,7 +119,7 @@ def upload():
     if resGetFace==True:
         if count >= 5:
             insert(name, phone)
-            train()
+            # train()
             return jsonify({"message": "success"})
         else:
             return jsonify({"message": "need further data"})
