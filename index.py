@@ -9,7 +9,7 @@ from PIL import Image
 import json
 import time
 from sqlite import insert,getNameFaceWithPhone,getNamePhonewithId,deleteFaceWithId
-# from trainData import train
+from trainData import train
 # from face_recognition import recognize_faces
 from face_rec_cam import recognize_faces
 from sqlite import insert, getNameFaceWithPhone, getNamePhonewithId, deleteFaceWithId
@@ -94,7 +94,7 @@ def deleteFaceAPI(id):
         os.rmdir(path)
     except:
         print("")
-    # train()
+    train()
     return jsonify({"message": "face deleted successfully"}), 200
 
 
@@ -112,18 +112,18 @@ def upload():
     image = data["image"]
     
     npImage = np.array(Image.open(io.BytesIO(base64.b64decode(image))),'uint8')
-    
+    npImage = cv2.cvtColor(npImage, cv2.COLOR_BGR2RGB)
     resGetFace = getFace(cv2.flip(cv2.rotate(npImage, cv2.ROTATE_90_COUNTERCLOCKWISE),1),phone,name,count)
-    if resGetFace=="Gan chut nua" or resGetFace=="Khong co mat":
+    if resGetFace!=True:
         return jsonify({"message":resGetFace})
     if resGetFace==True:
         if count >= 5:
             insert(name, phone)
-            # train()
+            train()
             return jsonify({"message": "success"})
         else:
             return jsonify({"message": "need further data"})
-    return jsonify({"message": "khong co mat"})
+    return jsonify({"message": "Không có mặt"})
 
 
 @app.route('/lockDoor', methods=['POST'])
@@ -139,7 +139,7 @@ def lockDoor():
     data ={"data": "lock" }
     response = requests.post(f'http://{addressDoor}/unlock',data= data)
 
-    setStatusDoor(addressDoor,True)
+    setStatusDoor(addressDoor,False)
     # addHistory(addressDoor,getNameDevice(addressDoor)+' open by '+getUserByPhone(phone)['name'])
     addHistory(addressDoor,getNameDevice(addressDoor)+' open by '+getUserByPhone(phone)['name'],phone)
     print('locked')
@@ -159,11 +159,16 @@ def unlockDoor():
     
     data ={"data": "open" }
     response = requests.post(f'http://{addressDoor}/unlock',data= data)
-    setStatusDoor(addressDoor,False)
+    setStatusDoor(addressDoor,True)
     print('Unlocked')
     # return jsonify({'status': response.status_code})
     return jsonify({'message': "unlocked"})
 
+@app.route('/lockFromESP', methods=['POST'])
+def updateStatus():
+    addressDoor = request.get_data(as_text=True)
+    setStatusDoor(addressDoor,False)
+    return jsonify({"message":"Password unchanged"})    
 
 @app.route('/get_image',methods=['GET'])
 def get_image():
@@ -239,6 +244,9 @@ def updateIP1():
     updataIPfirebase('0912459841','192.168.1.5','192.168.1.1')
     return jsonify({"message":"Password unchanged"})
 
+
+
+
 if __name__ == "__main__":
-    app.run(debug=True, host="192.168.1.3", port=os.environ.get("PORT", 3000))
+    app.run(debug=True, host="192.168.43.98", port=os.environ.get("PORT", 3000))
 

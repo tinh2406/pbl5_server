@@ -70,7 +70,7 @@ def crop_eye(gray, eye_points):
     min_x, min_y = int(cx - margin_x), int(cy - margin_y)
     max_x, max_y = int(cx + margin_x), int(cy + margin_y)
 
-    eye_rect = np.rint([min_x, min_y, max_x, max_y]).astype(np.int)
+    eye_rect = np.rint([min_x, min_y, max_x, max_y]).astype(int)
 
     eye_img = gray[eye_rect[1]:eye_rect[3], eye_rect[0]:eye_rect[2]]
 
@@ -113,9 +113,17 @@ with tf.Graph().as_default() as graph1:
 
         people_detected = set()
         person_detected = collections.Counter()
-
+recognizer = cv2.face.LBPHFaceRecognizer_create()
+recognizer.read('recognizer/trainningData.xml')
+cascadePath = "FacialRecognition/haarcascade_frontalface_default.xml"
+# test
+# recognizer.read('./trainer/trainer.yml')
+# cascadePath = "./haarcascade_frontalface_default.xml"
+faceCascade = cv2.CascadeClassifier(cascadePath);
 def recognize_faces():
-    
+    checkFace = False
+    faceName = None
+    faceBlink = None
     # Load The Custom Classifier
 
     # urlUnlock = f'http://{ipESP32}/unlock'
@@ -147,6 +155,65 @@ def recognize_faces():
         last_blink_time = time.time()
         eye_privious_right = 0.5
         eye_privious_left = 0.5
+
+        def countBlink(frame):
+            global eye_privious_right, eye_privious_left
+            check = False
+            gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+            faces_eyes = detector(gray)
+            for face in faces_eyes:
+                shapes = predictor(gray, face)
+                shapes = face_utils.shape_to_np(shapes)
+
+                eye_img_l, eye_rect_l = crop_eye(gray, eye_points=shapes[36:42])
+                eye_img_r, eye_rect_r = crop_eye(gray, eye_points=shapes[42:48])
+
+                eye_img_l = cv2.resize(eye_img_l, dsize=IMG_SIZE)
+                eye_img_r = cv2.resize(eye_img_r, dsize=IMG_SIZE)
+                eye_img_r = cv2.flip(eye_img_r, flipCode=1)
+
+                eye_input_l = eye_img_l.copy().reshape((1, IMG_SIZE[1], IMG_SIZE[0], 1)).astype(np.float32) / 255.
+                eye_input_r = eye_img_r.copy().reshape((1, IMG_SIZE[1], IMG_SIZE[0], 1)).astype(np.float32) / 255.
+                
+                with session2.as_default():
+                    with graph2.as_default():
+                        pred_l = model1.predict(eye_input_l)
+                        pred_r = model1.predict(eye_input_r)
+
+                # visualize
+                state_l = '%.1f' if pred_l > 0.1 else '%.1f'
+                state_r = '%.1f' if pred_r > 0.1 else '%.1f'
+
+                state_l = state_l % pred_l
+                state_r = state_r % pred_r
+                color_l = (0,255,0)
+                color_r = ()
+                if float(state_l) > 0.1 :
+                    color_l = (0,255,0)
+                else : 
+                    color_l = (0,0,255)
+                if float(state_r) > 0.1 :
+                    color_r = (0,255,0)
+                else : 
+                    color_r = (0,0,255)
+                    
+                cv2.rectangle(frame, pt1=tuple(eye_rect_l[0:2]), pt2=tuple(eye_rect_l[2:4]), color=color_l, thickness=2)
+                cv2.rectangle(frame, pt1=tuple(eye_rect_r[0:2]), pt2=tuple(eye_rect_r[2:4]), color=color_r, thickness=2)
+
+                cv2.putText(frame, state_l, tuple(eye_rect_l[0:2]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color_l, 2)
+                cv2.putText(frame, state_r, tuple(eye_rect_r[0:2]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color_r, 2)
+                
+                
+                if float(state_l) < 0.4 and float(state_r) < 0.4:
+                    # if time.time() - last_blink_time < 1:
+                    #     continue
+                    if eye_privious_right > 0.6 or eye_privious_left > 0.6:
+                        check = True
+                        last_blink_time = time.time()
+                eye_privious_right = float(state_r)
+                eye_privious_left = float(state_l)
+                print('so lan nhay mat ', blinks)
+            return check
         
         while True:
             # esp32
@@ -160,70 +227,14 @@ def recognize_faces():
             frame = imutils.resize(frame, width=600)
             frame = cv2.flip(frame, 1)
 
-            gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-
             bounding_boxes, _ = detect_face.detect_face(frame, MINSIZE, pnet, rnet, onet, THRESHOLD, FACTOR)
-
             faces_found = bounding_boxes.shape[0]
 
 
             if blinks < 2:
-                faces_eyes = detector(gray)
-                for face in faces_eyes:
-                    shapes = predictor(gray, face)
-                    shapes = face_utils.shape_to_np(shapes)
-
-                    eye_img_l, eye_rect_l = crop_eye(gray, eye_points=shapes[36:42])
-                    eye_img_r, eye_rect_r = crop_eye(gray, eye_points=shapes[42:48])
-
-                    eye_img_l = cv2.resize(eye_img_l, dsize=IMG_SIZE)
-                    eye_img_r = cv2.resize(eye_img_r, dsize=IMG_SIZE)
-                    eye_img_r = cv2.flip(eye_img_r, flipCode=1)
-
-                    eye_input_l = eye_img_l.copy().reshape((1, IMG_SIZE[1], IMG_SIZE[0], 1)).astype(np.float32) / 255.
-                    eye_input_r = eye_img_r.copy().reshape((1, IMG_SIZE[1], IMG_SIZE[0], 1)).astype(np.float32) / 255.
-                    
-                    with session2.as_default():
-                        with graph2.as_default():
-                            pred_l = model1.predict(eye_input_l)
-                            pred_r = model1.predict(eye_input_r)
-
-                    # visualize
-                    state_l = '%.1f' if pred_l > 0.1 else '%.1f'
-                    state_r = '%.1f' if pred_r > 0.1 else '%.1f'
-
-                    state_l = state_l % pred_l
-                    state_r = state_r % pred_r
-                    color_l = (0,255,0)
-                    color_r = ()
-                    if float(state_l) > 0.1 :
-                        color_l = (0,255,0)
-                    else : 
-                        color_l = (0,0,255)
-                    if float(state_r) > 0.1 :
-                        color_r = (0,255,0)
-                    else : 
-                        color_r = (0,0,255)
-                        
-                    cv2.rectangle(frame, pt1=tuple(eye_rect_l[0:2]), pt2=tuple(eye_rect_l[2:4]), color=color_l, thickness=2)
-                    cv2.rectangle(frame, pt1=tuple(eye_rect_r[0:2]), pt2=tuple(eye_rect_r[2:4]), color=color_r, thickness=2)
-
-                    cv2.putText(frame, state_l, tuple(eye_rect_l[0:2]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color_l, 2)
-                    cv2.putText(frame, state_r, tuple(eye_rect_r[0:2]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color_r, 2)
-                    
-                    
-                    if float(state_l) < 0.4 and float(state_r) < 0.4:
-                        # if time.time() - last_blink_time < 1:
-                        #     continue
-                        if eye_privious_right > 0.6 or eye_privious_left > 0.6:
-                            blinks += 1
-                            last_blink_time = time.time()
-                    eye_privious_right = float(state_r)
-                    eye_privious_left = float(state_l)
-                    print('so lan nhay mat ', blinks)
-                    if blinks < 2:
-                        cv2.putText(frame, 'Fake Face', (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-            else:
+                if countBlink(frame) == True:
+                    blinks += 1
+            if checkFace == False:
                 try:
                     if faces_found > 1:
                         # chỉ nhận diện khi có một khuôn mặt
@@ -262,7 +273,7 @@ def recognize_faces():
                                 print("Name: {}, Probability: {}".format(best_name, best_class_probabilities))
 
 
-                                if best_class_probabilities > 0.52:
+                                if best_class_probabilities > 0.40:
                                     cv2.rectangle(frame, (bb[i][0], bb[i][1]), (bb[i][2], bb[i][3]), (0, 255, 0), 2)
                                     text_x = bb[i][0]
                                     text_y = bb[i][3] + 20
@@ -274,11 +285,19 @@ def recognize_faces():
                                                 cv2.FONT_HERSHEY_COMPLEX_SMALL,
                                                 1, (255, 255, 255), thickness=1, lineType=2)
                                     person_detected[best_name] += 1
+                                    checkFace = True
+                                    faceName = name
+                                    if blinks == 2:
+                                        faceBlink = name
                                 else:
                                     name = "Unknown"
                                     unknown_count += 1
                 except:
                     pass
+            # print('faceName: ' , faceName)
+            # print('faceBlink: ' , faceBlink)
+            if checkFace == True and blinks > 1:
+                print('Nhan dang dung la ' + str(faceName))
             if unknown_count >= 50:
                 print('day la nguoi la')
                 unknown_count = 0
@@ -308,4 +327,7 @@ def finishRecognition(urlUnlock,status):
     # return True
 
 # print('kiem tra thuc thi server')
+
+
+
 recognize_faces()

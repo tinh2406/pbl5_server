@@ -1,7 +1,0 @@
-arguments: src/align_dataset_mtcnn.py Dataset/FaceData/raw Dataset/FaceData/processed --image_size 160 --margin 32 --random_order --gpu_memory_fraction 0.25
---------------------
-tensorflow version: 2.12.0
---------------------
-git hash: b'69ff1e149c0d84a123d6516ddd82970e65392608'
---------------------
-b'diff --git a/src/__pycache__/facenet.cpython-37.pyc b/src/__pycache__/facenet.cpython-37.pyc\ndeleted file mode 100644\nindex 3b10b34..0000000\nBinary files a/src/__pycache__/facenet.cpython-37.pyc and /dev/null differ\ndiff --git a/src/align/__pycache__/detect_face.cpython-37.pyc b/src/align/__pycache__/detect_face.cpython-37.pyc\ndeleted file mode 100644\nindex 4692c43..0000000\nBinary files a/src/align/__pycache__/detect_face.cpython-37.pyc and /dev/null differ'

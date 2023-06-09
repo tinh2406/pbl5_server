@@ -58,9 +58,7 @@ def main(args):
             for cls in dataset:
                 assert(len(cls.image_paths)>0, 'There must be at least one image for each class in the dataset')
 
-                 
             paths, labels = facenet.get_image_paths_and_labels(dataset)
-            
             print('Number of classes: %d' % len(dataset))
             print('Number of images: %d' % len(paths))
             
@@ -94,9 +92,8 @@ def main(args):
                 print('Training classifier')
                 model = SVC(kernel='linear', probability=True)
                 model.fit(emb_array, labels)
-            
                 # Create a list of class names
-                class_names = [ cls.name.replace('_', ' ') for cls in dataset]
+                class_names = [ cls.name for cls in dataset]
 
                 # Saving classifier model
                 with open(classifier_filename_exp, 'wb') as outfile:

@@ -40,7 +40,7 @@ import re
 from tensorflow.python.platform import gfile
 import math
 from six import iteritems
-
+from sqlite import getIdWithNameAndPhone
 def triplet_loss(anchor, positive, negative, alpha):
     """Calculate the triplet loss according to the FaceNet paper
     
@@ -80,8 +80,10 @@ def get_image_paths_and_labels(dataset):
     image_paths_flat = []
     labels_flat = []
     for i in range(len(dataset)):
-        image_paths_flat += dataset[i].image_paths
-        labels_flat += [i] * len(dataset[i].image_paths)
+        for j in range(len(dataset[i].image_paths)):
+            image_paths_flat.append(dataset[i].image_paths[j])
+            labels_flat.append(dataset[i].name) 
+        
     return image_paths_flat, labels_flat
 
 def shuffle_examples(image_paths, labels):
@@ -318,16 +320,18 @@ class ImageClass():
 def get_dataset(path, has_class_directories=True):
     dataset = []
     path_exp = os.path.expanduser(path)
-    classes = [path for path in os.listdir(path_exp) \
-                    if os.path.isdir(os.path.join(path_exp, path))]
-    classes.sort()
+    classes = []
+    for path_phone in os.listdir(path_exp):
+        for path_name in os.listdir(os.path.join(path_exp,path_phone)):
+            classes.append([path_phone,path_name])
+
     nrof_classes = len(classes)
     for i in range(nrof_classes):
         class_name = classes[i]
-        facedir = os.path.join(path_exp, class_name)
+        facedir = os.path.join(path_exp, class_name[0],class_name[1])
         image_paths = get_image_paths(facedir)
-        dataset.append(ImageClass(class_name, image_paths))
-  
+        id = getIdWithNameAndPhone(class_name[1],class_name[0])
+        dataset.append(ImageClass(class_name[1], image_paths))
     return dataset
 
 def get_image_paths(facedir):

@@ -195,6 +195,8 @@ def deviceIsInPhone(device, phone):
 
 def setStatusDoor(device, status):
     device_ref = db.collection('devices').document(device)
+    print(device_ref.get().to_dict())
+    print(status)
     device_ref.set({'status': status}, merge=True)
 
 

@@ -113,13 +113,14 @@ with tf.Graph().as_default() as graph1:
 
         people_detected = set()
         person_detected = collections.Counter()
-recognizer = cv2.face.LBPHFaceRecognizer_create()
-recognizer.read('recognizer/trainningData.xml')
-cascadePath = "FacialRecognition/haarcascade_frontalface_default.xml"
-# test
-# recognizer.read('./trainer/trainer.yml')
-# cascadePath = "./haarcascade_frontalface_default.xml"
-faceCascade = cv2.CascadeClassifier(cascadePath);
+
+def findFace(img):
+    img = imutils.resize(img, width=600)
+    img = cv2.flip(img,1)
+
+    bounding_boxes, _ = detect_face.detect_face(img, MINSIZE, pnet, rnet, onet, THRESHOLD, FACTOR)
+
+    return bounding_boxes,_
 def recognize_faces(ipESP32,phone):
     
     # Load The Custom Classifier
@@ -160,7 +161,7 @@ def recognize_faces(ipESP32,phone):
             imgnp=np.array(bytearray(img_resp.read()),dtype=np.uint8)
             frame = cv2.imdecode(imgnp,-1)
             frame = imutils.resize(frame, width=600)
-            frame = cv2.flip(frame,1)
+            # frame = cv2.flip(frame,1)
 
             # frame = cap.read()
             # frame = imutils.resize(frame, width=600)
@@ -172,7 +173,7 @@ def recognize_faces(ipESP32,phone):
 
             faces_found = bounding_boxes.shape[0]
 
-            if time.time() - start_time > 120:
+            if time.time() - start_time > 45:
                 print('Recognize faces timeout')
                 finishRecognition(urlUnlock,False)
                 now = datetime.datetime.now()
@@ -280,8 +281,8 @@ def recognize_faces(ipESP32,phone):
                                 # tên và độ chính xác
                                 print("Name: {}, Probability: {}".format(best_name, best_class_probabilities))
 
-
-                                if best_class_probabilities > 0.52:
+                                print(best_class_probabilities)
+                                if best_class_probabilities[0] > 0.6:
                                     cv2.rectangle(frame, (bb[i][0], bb[i][1]), (bb[i][2], bb[i][3]), (0, 255, 0), 2)
                                     text_x = bb[i][0]
                                     text_y = bb[i][3] + 20
@@ -344,7 +345,7 @@ def finishRecognition(urlUnlock,status):
     if status == True:
         data = {'data': 'open'}
     else:
-        data = {'data': 'lock'}
+        data = {'data': 'warning'}
     response = requests.post(urlUnlock, data=data)
     return response
     # return True

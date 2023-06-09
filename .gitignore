@@ -6,4 +6,6 @@ train
 facenet/Models/
 facenet/src/models/
 models/
+unknownImage/
+imagesSaved/
 
